@@ -27,7 +27,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * UI tests for [MyModelScreen].
+ * UI tests for [HomeScreen].
  */
 @RunWith(AndroidJUnit4::class)
 class MyModelScreenTest {
@@ -38,7 +38,7 @@ class MyModelScreenTest {
     @Before
     fun setup() {
         composeTestRule.setContent {
-            MyModelScreen(FAKE_DATA, onSave = {})
+            HomeScreen(FAKE_DATA, onSave = {})
         }
     }
     @Test

@@ -23,14 +23,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import android.template.feature.weighbridge.ui.MyModelScreen
+import android.template.feature.weighbridge.ui.HomeScreen
 
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "main") {
-        composable("main") { MyModelScreen(modifier = Modifier.padding(16.dp)) }
+        composable("main") { HomeScreen(modifier = Modifier.padding(16.dp)) }
         // TODO: Add more destinations
     }
 }
