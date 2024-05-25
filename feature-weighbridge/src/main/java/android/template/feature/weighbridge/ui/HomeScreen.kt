@@ -27,7 +27,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,6 +37,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -42,6 +46,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -269,6 +274,31 @@ private fun RecordCard(
             val notes = spec.notes.orEmpty()
             if (notes.isNotBlank()) {
                 FieldRow(title = "Notes:", value = notes)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    modifier = Modifier.weight(2f),
+                    onClick = { /*TODO*/ }
+                ) {
+                    Text(text = "View Details")
+                }
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = { /*TODO*/ }
+                ) {
+                    Icon(
+                        modifier = Modifier.padding(end = 4.dp).size(16.dp),
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = null // Set a content description if needed
+                    )
+                    Text(text = "Edit")
+                }
             }
         }
     }
