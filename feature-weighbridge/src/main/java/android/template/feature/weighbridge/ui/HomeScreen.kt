@@ -16,46 +16,51 @@
 
 package android.template.feature.weighbridge.ui
 
+import android.template.core.ui.MyApplicationTheme
+import android.template.core.ui.Typography
+import android.template.feature.weighbridge.ui.MyModelUiState.Success
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle.State.STARTED
 import androidx.lifecycle.repeatOnLifecycle
-import android.template.feature.weighbridge.ui.MyModelUiState.Success
-import android.template.core.ui.MyApplicationTheme
-import android.template.core.ui.Typography
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import java.text.SimpleDateFormat
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 import android.template.core.ui.R as CoreUiR
@@ -73,40 +78,106 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = hilt
         }
     }
     if (items is Success) {
+//        HomeScreen(
+//            items = (items as Success).data,
+//            onSave = { name -> viewModel.addMyModel(name) },
+//            modifier = modifier
+//        )
+
         HomeScreen(
-            items = (items as Success).data,
-            onSave = { name -> viewModel.addMyModel(name) },
-            modifier = modifier
-        )
+            recordList = listOf(
+                WeighbridgeRecordSpec(
+                    id = "SOME_ID_1",
+                    dateTime = Date(),
+                    fleetType = FleetType.Inbound,
+                    truckLicenseNumber = "F 1231 ABC",
+                    driverName = "William Doe",
+                    grossWeight = 100.0,
+                    netWeight = 90.0,
+                ),
+                WeighbridgeRecordSpec(
+                    id = "SOME_ID_2",
+                    dateTime = Date(),
+                    fleetType = FleetType.Outbound,
+                    truckLicenseNumber = "F 1231 ABC",
+                    driverName = "William Doe",
+                    grossWeight = 1525.0,
+                    netWeight = 1200.0,
+                ),
+                WeighbridgeRecordSpec(
+                    id = "SOME_ID_1",
+                    dateTime = Date(),
+                    fleetType = FleetType.Inbound,
+                    truckLicenseNumber = "F 1231 ABC",
+                    driverName = "William Doe",
+                    grossWeight = 100.0,
+                    netWeight = 90.0,
+                ),
+                WeighbridgeRecordSpec(
+                    id = "SOME_ID_2",
+                    dateTime = Date(),
+                    fleetType = FleetType.Outbound,
+                    truckLicenseNumber = "F 1231 ABC",
+                    driverName = "William Doe",
+                    grossWeight = 1525.0,
+                    netWeight = 1200.0,
+                ),
+                WeighbridgeRecordSpec(
+                    id = "SOME_ID_1",
+                    dateTime = Date(),
+                    fleetType = FleetType.Inbound,
+                    truckLicenseNumber = "F 1231 ABC",
+                    driverName = "William Doe",
+                    grossWeight = 100.0,
+                    netWeight = 90.0,
+                ),
+                WeighbridgeRecordSpec(
+                    id = "SOME_ID_2",
+                    dateTime = Date(),
+                    fleetType = FleetType.Outbound,
+                    truckLicenseNumber = "F 1231 ABC",
+                    driverName = "William Doe",
+                    grossWeight = 1525.0,
+                    netWeight = 1200.0,
+                ),
+            ), onSave = {})
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeScreen(
-    items: List<String>,
-    onSave: (name: String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    recordList: List<WeighbridgeRecordSpec>,
+    onSave: (name: String) -> Unit
 ) {
-    Column(modifier) {
-        var nameMyModel by remember { mutableStateOf("Compose") }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            TextField(
-                value = nameMyModel,
-                onValueChange = { nameMyModel = it }
-            )
-
-            Button(modifier = Modifier.width(96.dp), onClick = { onSave(nameMyModel) }) {
-                Text("Save")
-            }
+    val listState = rememberLazyListState()
+    val expandedFab by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex == 0
         }
-        items.forEach {
-            Text("Saved item: $it")
+    }
+
+    Scaffold(
+        modifier = modifier,
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { /* do something */ },
+                expanded = expandedFab,
+                icon = { Icon(Icons.Filled.Add, "Localized Description") },
+                text = { Text(text = "Create Ticket") },
+            )
+        },
+        floatingActionButtonPosition = FabPosition.End,
+    ) {
+        LazyColumn(
+            modifier = Modifier.padding(it),
+            state = listState,
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(recordList) {
+                RecordCard(spec = it)
+            }
         }
     }
 }
@@ -135,10 +206,11 @@ private fun RecordCard(
     Card(
         modifier = modifier
             .fillMaxWidth(),
-        colors = CardDefaults.cardColors(
+        colors = CardDefaults.elevatedCardColors(
             containerColor = Color.White,
             contentColor = Color.DarkGray
-        )
+        ),
+        border = BorderStroke(1.dp, Color(0xFFECECEC))
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -186,12 +258,14 @@ private fun RecordCard(
                     .align(Alignment.End)
                     .padding(top = 4.dp)
             )
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            Divider(modifier = Modifier.padding(vertical = 8.dp), color = Color(0xFFECECEC))
 
             FieldRow(title = "Truck License Number:", value = spec.truckLicenseNumber)
             FieldRow(title = "Driver Name:", value = spec.driverName)
-            FieldRow(title = "Gross Weight:", value = "${spec.grossWeight} kg")
-            FieldRow(title = "Net Weight:", value = "${spec.netWeight} kg")
+
+            val weightFormatter = remember { WeightFormatter() }
+            FieldRow(title = "Gross Weight:", value = weightFormatter.format(spec.grossWeight))
+            FieldRow(title = "Net Weight:", value = weightFormatter.format(spec.netWeight))
             val notes = spec.notes.orEmpty()
             if (notes.isNotBlank()) {
                 FieldRow(title = "Notes:", value = notes)
@@ -212,7 +286,10 @@ private fun FieldRow(title: String, value: String) {
             modifier = Modifier.weight(1f)
         )
         Spacer(modifier = Modifier.width(16.dp))
-        Text(text = value)
+        Text(
+            text = value,
+            style = Typography.bodySmall,
+        )
     }
 }
 
@@ -222,7 +299,27 @@ private fun FieldRow(title: String, value: String) {
 @Composable
 private fun DefaultPreview() {
     MyApplicationTheme {
-        HomeScreen(listOf("Compose", "Room", "Kotlin"), onSave = {})
+        HomeScreen(
+            recordList = listOf(
+                WeighbridgeRecordSpec(
+                    id = "SOME_ID_1",
+                    dateTime = Date(),
+                    fleetType = FleetType.Inbound,
+                    truckLicenseNumber = "F 1231 ABC",
+                    driverName = "William Doe",
+                    grossWeight = 100.0,
+                    netWeight = 90.0,
+                ),
+                WeighbridgeRecordSpec(
+                    id = "SOME_ID_2",
+                    dateTime = Date(),
+                    fleetType = FleetType.Outbound,
+                    truckLicenseNumber = "F 1231 ABC",
+                    driverName = "William Doe",
+                    grossWeight = 1525.0,
+                    netWeight = 1200.0,
+                )
+            ), onSave = {})
     }
 }
 
@@ -230,7 +327,27 @@ private fun DefaultPreview() {
 @Composable
 private fun PortraitPreview() {
     MyApplicationTheme {
-        HomeScreen(listOf("Compose", "Room", "Kotlin"), onSave = {})
+        HomeScreen(
+            recordList = listOf(
+                WeighbridgeRecordSpec(
+                    id = "SOME_ID_1",
+                    dateTime = Date(),
+                    fleetType = FleetType.Inbound,
+                    truckLicenseNumber = "F 1231 ABC",
+                    driverName = "William Doe",
+                    grossWeight = 100.0,
+                    netWeight = 90.0,
+                ),
+                WeighbridgeRecordSpec(
+                    id = "SOME_ID_2",
+                    dateTime = Date(),
+                    fleetType = FleetType.Outbound,
+                    truckLicenseNumber = "F 1231 ABC",
+                    driverName = "William Doe",
+                    grossWeight = 1525.0,
+                    netWeight = 1200.0,
+                )
+            ), onSave = {})
     }
 }
 
@@ -260,8 +377,8 @@ private fun RecordCardPreview() {
                 fleetType = FleetType.Outbound,
                 truckLicenseNumber = "F 1231 ABC",
                 driverName = "William Doe",
-                grossWeight = 100.0,
-                netWeight = 90.0,
+                grossWeight = 1525.0,
+                netWeight = 1200.0,
             )
         )
     }
