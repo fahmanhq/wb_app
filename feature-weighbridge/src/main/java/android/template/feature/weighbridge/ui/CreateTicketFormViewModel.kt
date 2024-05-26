@@ -24,6 +24,32 @@ class CreateTicketFormViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CreateTicketFormUiState())
     val uiState: StateFlow<CreateTicketFormUiState> = _uiState.asStateFlow()
 
+    fun init(recordId: String?, mode: FormMode) {
+        when (mode) {
+            FormMode.EDIT,
+            FormMode.VIEW -> {
+                viewModelScope.launch {
+                    val existingRecord = recordRepository.getWeighbridgeRecordById(recordId!!)
+                    _uiState.value = _uiState.value.copy(
+                        mode = mode,
+                        formValues = existingRecord?.let {
+                            CreateTicketFormUiState.FormValues(
+                                entryDate = it.entryDate,
+                                fleetType = it.fleetType,
+                                licenseNumber = it.licenseNumber,
+                                driverName = it.driverName,
+                                tareWeight = it.tareWeight.toString(),
+                                grossWeight = it.grossWeight.toString(),
+                                recordId = it.recordId
+                            )
+                        } ?: CreateTicketFormUiState.FormValues()
+                    )
+                }
+            }
+            else -> {}
+        }
+    }
+
     fun onPickFleetType(type: FleetType) {
         _uiState.value = _uiState.value.copy(
             formValues = _uiState.value.formValues.copy(
@@ -75,7 +101,10 @@ class CreateTicketFormViewModel @Inject constructor(
                     driverName = it.driverName,
                     tareWeight = it.tareWeight.toDouble(),
                     grossWeight = it.grossWeight.toDouble(),
-                    recordId = UUID.randomUUID().toString()
+                    recordId = when (_uiState.value.mode) {
+                        FormMode.EDIT -> it.recordId!!
+                        else -> UUID.randomUUID().toString()
+                    }
                 )
             }
 
@@ -95,10 +124,17 @@ class CreateTicketFormViewModel @Inject constructor(
         }
     }
 
+    fun onEditButtonClicked() {
+        _uiState.value = _uiState.value.copy(
+            mode = FormMode.EDIT
+        )
+    }
+
 }
 
 data class CreateTicketFormUiState(
     val formValues: FormValues = FormValues(),
+    val mode: FormMode = FormMode.CREATE,
     val saveProgressState: Resource<WeighbridgeRecord>? = null
 ) {
     data class FormValues(
@@ -108,6 +144,7 @@ data class CreateTicketFormUiState(
         val driverName: String = "",
         val tareWeight: String = "",
         val grossWeight: String = "",
+        val recordId: String? = null
     )
 }
 

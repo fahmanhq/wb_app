@@ -2,7 +2,9 @@ package android.template.feature.weighbridge.ui
 
 import android.template.core.data.model.FleetType
 import android.template.core.ui.MyApplicationTheme
+import android.template.core.ui.utils.RecordIdFormatter
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,12 +14,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,19 +40,34 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavHostController
 import java.text.DateFormat
+import java.util.UUID
+
+enum class FormMode {
+    CREATE,
+    EDIT,
+    VIEW
+}
 
 @Composable
 fun TicketFormScreen(
-    modifier: Modifier = Modifier,
+    navController: NavHostController,
     viewModel: CreateTicketFormViewModel = hiltViewModel(),
+    recordId: String?,
+    mode: FormMode,
+    onBackButtonClicked: () -> Unit,
     onRecordSaved: () -> Unit
 ) {
+    LaunchedEffect(recordId) {
+        viewModel.init(recordId, mode)
+    }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val uiState by produceState(
         initialValue = CreateTicketFormUiState(),
@@ -63,17 +88,23 @@ fun TicketFormScreen(
                     Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
                 }
             }
+
             is Resource.Success -> {
-                Toast.makeText(context, "Successfully created the ticket", Toast.LENGTH_SHORT).show()
+                val successMessage = when (mode) {
+                    FormMode.EDIT -> "Ticket Updated"
+                    else -> "Ticket Created"
+                }
+                Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
                 onRecordSaved()
             }
+
             else -> {}
         }
     }
 
     TicketFormScreen(
-        modifier = modifier,
         uiState = uiState,
+        onBackButtonClicked = onBackButtonClicked,
         onPickFleetType = {
             viewModel.onPickFleetType(it)
         },
@@ -91,21 +122,26 @@ fun TicketFormScreen(
         },
         onSaveBtnClicked = {
             viewModel.onSaveBtnClicked()
+        },
+        onEditButtonClicked = {
+            viewModel.onEditButtonClicked()
         }
     )
 }
 
 @Composable
 private fun TicketFormScreen(
-    modifier: Modifier = Modifier,
     uiState: CreateTicketFormUiState,
+    onBackButtonClicked: () -> Unit,
     onPickFleetType: (type: FleetType) -> Unit,
     onLicenseNumberChanged: (String) -> Unit,
     onDriverNameChanged: (String) -> Unit,
     onTareWeightChanged: (String) -> Unit,
     onGrossWeightChanged: (String) -> Unit,
-    onSaveBtnClicked: () -> Unit
+    onSaveBtnClicked: () -> Unit,
+    onEditButtonClicked: () -> Unit
 ) {
+    val formMode = uiState.mode
     val formValues = uiState.formValues
     val entryDate = formValues.entryDate
     val fleetType = formValues.fleetType
@@ -113,128 +149,195 @@ private fun TicketFormScreen(
     val driverName = formValues.driverName
     val tareWeight = formValues.tareWeight
     val grossWeight = formValues.grossWeight
+    val isEditableMode = formMode != FormMode.VIEW
+    val recordId = formValues.recordId
+    val readableId = recordId?.let { RecordIdFormatter.format(it) }.orEmpty()
 
     val netWeight = (grossWeight.toDoubleOrNull() ?: 0.0) - (tareWeight.toDoubleOrNull() ?: 0.0)
 
     val saveBtnEnabled =
-            licenseNumber.isNotBlank() &&
-                    driverName.isNotBlank() &&
-                    tareWeight.isNotBlank() &&
-                    grossWeight.isNotBlank() &&
-                    netWeight > 0.0
+        licenseNumber.isNotBlank() &&
+                driverName.isNotBlank() &&
+                tareWeight.isNotBlank() &&
+                grossWeight.isNotBlank() &&
+                netWeight > 0.0
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+    Scaffold(
+        topBar = {
+            AppBarWithBackButtonAndTitle(
+                title = when (formMode) {
+                    FormMode.CREATE -> "Create Ticket"
+                    FormMode.EDIT -> "Edit Ticket $readableId"
+                    FormMode.VIEW -> "Ticket $readableId"
+                },
+                formMode = formMode,
+                onBackButtonClick = onBackButtonClicked,
+                onEditButtonClick = onEditButtonClicked
+            )
+        }
     ) {
-        Text(
-            text = "Entry Time : ${
-                DateFormat.getDateTimeInstance().format(entryDate)
-            }",
-            style = MaterialTheme.typography.bodySmall
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "Entry Time : ${
+                    DateFormat.getDateTimeInstance().format(entryDate)
+                }",
+                style = MaterialTheme.typography.bodySmall
+            )
 
-        Divider(
-            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
-        )
+            Divider(
+                modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+            )
 
-        Text("Fleet Type")
-        Row {
-            FleetType.values().forEach { type ->
-                Row(
-                    Modifier
-                        .weight(1f)
-                        .height(56.dp)
-                        .selectable(
+            Text("Fleet Type")
+            Row {
+                FleetType.values().forEach { type ->
+                    Row(
+                        Modifier
+                            .weight(1f)
+                            .height(56.dp)
+                            .selectable(
+                                selected = (type == fleetType),
+                                onClick = {
+                                    onPickFleetType(type)
+                                },
+                                role = Role.RadioButton,
+                                enabled = isEditableMode
+                            )
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
                             selected = (type == fleetType),
-                            onClick = {
-                                onPickFleetType(type)
-                            },
-                            role = Role.RadioButton
+                            onClick = null,
+                            enabled = isEditableMode
                         )
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        Text(
+                            text = type.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+                }
+            }
+
+            OutlinedTextField(
+                value = licenseNumber,
+                onValueChange = onLicenseNumberChanged,
+                label = { Text("License Number") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Characters,
+                    imeAction = ImeAction.Next
+                ),
+                singleLine = true,
+                readOnly = !isEditableMode
+            )
+
+            OutlinedTextField(
+                value = driverName,
+                onValueChange = onDriverNameChanged,
+                label = { Text("Driver Name") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Words,
+                    imeAction = ImeAction.Next
+                ),
+                singleLine = true,
+                readOnly = !isEditableMode
+            )
+
+            OutlinedTextField(
+                value = tareWeight,
+                onValueChange = onTareWeightChanged,
+                label = { Text("Tare Weight") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                suffix = { Text("kg") },
+                singleLine = true,
+                readOnly = !isEditableMode
+            )
+
+            OutlinedTextField(
+                value = grossWeight,
+                onValueChange = onGrossWeightChanged,
+                label = { Text("Gross Weight") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number
+                ),
+                suffix = { Text("kg") },
+                singleLine = true,
+                readOnly = !isEditableMode
+            )
+
+            OutlinedTextField(
+                value = WeightFormatter().format(netWeight),
+                onValueChange = {},
+                label = { Text("Net Weight") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
+            )
+
+            AnimatedVisibility(
+                visible = isEditableMode,
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Button(
+                    enabled = saveBtnEnabled,
+                    onClick = onSaveBtnClicked
                 ) {
-                    RadioButton(
-                        selected = (type == fleetType),
-                        onClick = null
-                    )
-                    Text(
-                        text = type.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(start = 16.dp)
+                    Text("Save")
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppBarWithBackButtonAndTitle(
+    title: String,
+    formMode: FormMode,
+    onBackButtonClick: () -> Unit,
+    onEditButtonClick: () -> Unit
+) {
+    TopAppBar(
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBackButtonClick) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+        },
+        actions = {
+            if (formMode == FormMode.VIEW) {
+                IconButton(onClick = onEditButtonClick) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = "Edit"
                     )
                 }
             }
         }
-
-        OutlinedTextField(
-            value = licenseNumber,
-            onValueChange = onLicenseNumberChanged,
-            label = { Text("License Number") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Characters,
-                imeAction = ImeAction.Next
-            ),
-            singleLine = true
-        )
-
-        OutlinedTextField(
-            value = driverName,
-            onValueChange = onDriverNameChanged,
-            label = { Text("Driver Name") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Words,
-                imeAction = ImeAction.Next
-            ),
-            singleLine = true
-        )
-
-        OutlinedTextField(
-            value = tareWeight,
-            onValueChange = onTareWeightChanged,
-            label = { Text("Tare Weight") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Next
-            ),
-            suffix = { Text("kg") },
-            singleLine = true,
-        )
-
-        OutlinedTextField(
-            value = grossWeight,
-            onValueChange = onGrossWeightChanged,
-            label = { Text("Gross Weight") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number
-            ),
-            suffix = { Text("kg") },
-            singleLine = true,
-        )
-
-        OutlinedTextField(
-            value = WeightFormatter().format(netWeight),
-            onValueChange = {},
-            label = { Text("Net Weight") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = false
-        )
-
-        Button(
-            enabled = saveBtnEnabled,
-            onClick = onSaveBtnClicked,
-            modifier = Modifier.align(Alignment.End)
-        ) {
-            Text("Save")
-        }
-    }
+    )
 }
 
 @Preview(showBackground = true)
@@ -245,12 +348,65 @@ private fun TicketFormScreenPreview() {
             uiState = CreateTicketFormUiState(
                 formValues = CreateTicketFormUiState.FormValues()
             ),
+            onBackButtonClicked = {},
             onPickFleetType = {},
             onLicenseNumberChanged = {},
             onDriverNameChanged = {},
             onTareWeightChanged = {},
             onGrossWeightChanged = {},
-            onSaveBtnClicked = {}
+            onSaveBtnClicked = {},
+            onEditButtonClicked = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TicketFormScreenOnViewModePreview() {
+    MyApplicationTheme {
+        TicketFormScreen(
+            uiState = CreateTicketFormUiState(
+                formValues = CreateTicketFormUiState.FormValues(
+                    recordId = UUID.randomUUID().toString()
+                ),
+                mode = FormMode.VIEW
+            ),
+            onBackButtonClicked = {},
+            onPickFleetType = {},
+            onLicenseNumberChanged = {},
+            onDriverNameChanged = {},
+            onTareWeightChanged = {},
+            onGrossWeightChanged = {},
+            onSaveBtnClicked = {},
+            onEditButtonClicked = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TicketFormScreenOnEditModePreview() {
+    MyApplicationTheme {
+        TicketFormScreen(
+            uiState = CreateTicketFormUiState(
+                formValues = CreateTicketFormUiState.FormValues(
+                    recordId = UUID.randomUUID().toString(),
+                    fleetType = FleetType.INBOUND,
+                    licenseNumber = "F 1208 BER",
+                    driverName = "Thomas Bowman",
+                    tareWeight = "2000",
+                    grossWeight = "5510",
+                ),
+                mode = FormMode.EDIT
+            ),
+            onBackButtonClicked = {},
+            onPickFleetType = {},
+            onLicenseNumberChanged = {},
+            onDriverNameChanged = {},
+            onTareWeightChanged = {},
+            onGrossWeightChanged = {},
+            onSaveBtnClicked = {},
+            onEditButtonClicked = {}
         )
     }
 }

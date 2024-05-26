@@ -46,8 +46,19 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
             }
     }
 
-    override suspend fun getWeighbridgeRecordById(recordId: String): WeighbridgeRecordDbModel? {
+    override suspend fun getWeighbridgeRecordById(recordId: String): WeighbridgeRecord? {
         return weighbridgeRecordDao.getWeighbridgeRecordById(recordId)
+            ?.let {
+                WeighbridgeRecord(
+                    recordId = it.recordId,
+                    fleetType = FleetType.valueOf(it.type),
+                    licenseNumber = it.licenseNumber,
+                    driverName = it.driverName,
+                    tareWeight = it.tareWeight,
+                    grossWeight = it.grossWeight,
+                    entryDate = dateFormatter.parse(it.entryDate)
+                )
+            }
     }
 
     override suspend fun deleteWeighbridgeRecordById(recordId: String) {
@@ -62,7 +73,7 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
 interface WeighbridgeRecordRepository {
     suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord)
     fun getAllWeighbridgeRecords(): Flow<List<WeighbridgeRecord>>
-    suspend fun getWeighbridgeRecordById(recordId: String): WeighbridgeRecordDbModel?
+    suspend fun getWeighbridgeRecordById(recordId: String): WeighbridgeRecord?
     suspend fun deleteWeighbridgeRecordById(recordId: String)
     suspend fun deleteAllWeighbridgeRecords()
 }

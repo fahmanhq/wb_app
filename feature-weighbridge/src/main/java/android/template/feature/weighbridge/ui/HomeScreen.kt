@@ -20,8 +20,10 @@ import android.template.core.data.model.FleetType
 import android.template.core.data.model.WeighbridgeRecord
 import android.template.core.ui.MyApplicationTheme
 import android.template.core.ui.Typography
+import android.template.core.ui.utils.RecordIdFormatter
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -65,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle.State.STARTED
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavHostController
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -72,9 +75,11 @@ import android.template.core.ui.R as CoreUiR
 
 @Composable
 fun HomeScreen(
-    modifier: Modifier = Modifier,
+    navController: NavHostController,
     viewModel: RecordListViewModel = hiltViewModel(),
-    onCreateTicketBtnClicked: () -> Unit
+    onCreateTicketBtnClicked: () -> Unit,
+    onViewDetailsBtnClicked: (String) -> Unit,
+    onEditBtnClicked: (String) -> Unit
 ) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val items by produceState<RecordListUiState>(
@@ -88,18 +93,20 @@ fun HomeScreen(
     }
     if (items is RecordListUiState.Success) {
         HomeScreen(
-            modifier = modifier,
             recordList = (items as RecordListUiState.Success).data,
-            onCreateTicketBtnClicked = onCreateTicketBtnClicked
+            onCreateTicketBtnClicked = onCreateTicketBtnClicked,
+            onViemDetailsBtnClicked = onViewDetailsBtnClicked,
+            onEditBtnClicked = onEditBtnClicked
         )
     }
 }
 
 @Composable
 internal fun HomeScreen(
-    modifier: Modifier = Modifier,
     recordList: List<WeighbridgeRecord>,
-    onCreateTicketBtnClicked: () -> Unit
+    onCreateTicketBtnClicked: () -> Unit,
+    onViemDetailsBtnClicked: (String) -> Unit,
+    onEditBtnClicked: (String) -> Unit
 ) {
     val listState = rememberLazyListState()
     val expandedFab by remember {
@@ -109,7 +116,6 @@ internal fun HomeScreen(
     }
 
     Scaffold(
-        modifier = modifier,
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onCreateTicketBtnClicked,
@@ -127,7 +133,11 @@ internal fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(recordList) {
-                RecordCard(spec = it)
+                RecordCard(
+                    spec = it,
+                    onViewDetailsBtnClicked = onViemDetailsBtnClicked,
+                    onEditBtnClicked = onEditBtnClicked
+                )
             }
         }
     }
@@ -136,11 +146,16 @@ internal fun HomeScreen(
 @Composable
 private fun RecordCard(
     modifier: Modifier = Modifier,
-    spec: WeighbridgeRecord
+    spec: WeighbridgeRecord,
+    onViewDetailsBtnClicked: (String) -> Unit = {},
+    onEditBtnClicked: (String) -> Unit = {}
 ) {
     Card(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable {
+               onViewDetailsBtnClicked.invoke(spec.recordId)
+            },
         colors = CardDefaults.elevatedCardColors(
             containerColor = Color.White,
             contentColor = Color.DarkGray
@@ -158,7 +173,7 @@ private fun RecordCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Record #SOME_ID",
+                    text = "TICKET ${RecordIdFormatter.format(spec.recordId)}",
                     style = Typography.titleMedium,
                 )
 
@@ -223,13 +238,13 @@ private fun RecordCard(
             ) {
                 Button(
                     modifier = Modifier.weight(2f),
-                    onClick = { /*TODO*/ }
+                    onClick = { onViewDetailsBtnClicked(spec.recordId) }
                 ) {
                     Text(text = "View Details")
                 }
                 OutlinedButton(
                     modifier = Modifier.weight(1f),
-                    onClick = { /*TODO*/ }
+                    onClick = { onEditBtnClicked(spec.recordId) }
                 ) {
                     Icon(
                         modifier = Modifier
@@ -290,7 +305,11 @@ private fun DefaultPreview() {
                     grossWeight = 1525.0,
                     tareWeight = 1200.0,
                 )
-            ), onCreateTicketBtnClicked = {})
+            ),
+            onCreateTicketBtnClicked = {},
+            onViemDetailsBtnClicked = {},
+            onEditBtnClicked = {}
+        )
     }
 }
 
@@ -318,7 +337,11 @@ private fun PortraitPreview() {
                     grossWeight = 1525.0,
                     tareWeight = 1200.0,
                 )
-            ), onCreateTicketBtnClicked = {})
+            ),
+            onCreateTicketBtnClicked = {},
+            onViemDetailsBtnClicked = {},
+            onEditBtnClicked = {}
+        )
     }
 }
 
