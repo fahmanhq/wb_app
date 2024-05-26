@@ -16,6 +16,8 @@
 
 package android.template.data
 
+import android.template.core.data.DefaultMyModelRepository
+import android.template.core.database.model.MyModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -23,15 +25,12 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import android.template.core.data.DefaultMyModelRepository
-import android.template.core.database.MyModel
-import android.template.core.database.MyModelDao
 
 /**
  * Unit tests for [DefaultMyModelRepository].
  */
 @OptIn(ExperimentalCoroutinesApi::class) // TODO: Remove when stable
-class DefaultMyModelRepositoryTest {
+class DefaultWeighbridgeRecordDbModelRepositoryTest {
 
     @Test
     fun myModels_newItemSaved_itemIsReturned() = runTest {

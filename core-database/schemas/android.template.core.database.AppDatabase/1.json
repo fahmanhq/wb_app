@@ -2,29 +2,59 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "8bebd6aab64557ab1de14693ec7b4103",
+    "identityHash": "2a30747705fec9f5586de6e59c68593d",
     "entities": [
       {
-        "tableName": "MyModel",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
+        "tableName": "weighbridge_record",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`recordId` TEXT NOT NULL, `licenseNumber` TEXT NOT NULL, `driverName` TEXT NOT NULL, `type` TEXT NOT NULL, `tareWeight` REAL NOT NULL, `grossWeight` REAL NOT NULL, `entryDate` TEXT NOT NULL, PRIMARY KEY(`recordId`))",
         "fields": [
           {
-            "fieldPath": "name",
-            "columnName": "name",
+            "fieldPath": "recordId",
+            "columnName": "recordId",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "uid",
-            "columnName": "uid",
-            "affinity": "INTEGER",
+            "fieldPath": "licenseNumber",
+            "columnName": "licenseNumber",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "driverName",
+            "columnName": "driverName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tareWeight",
+            "columnName": "tareWeight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "grossWeight",
+            "columnName": "grossWeight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "entryDate",
+            "columnName": "entryDate",
+            "affinity": "TEXT",
             "notNull": true
           }
         ],
         "primaryKey": {
-          "autoGenerate": true,
+          "autoGenerate": false,
           "columnNames": [
-            "uid"
+            "recordId"
           ]
         },
         "indices": [],
@@ -34,7 +64,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8bebd6aab64557ab1de14693ec7b4103')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2a30747705fec9f5586de6e59c68593d')"
     ]
   }
 }

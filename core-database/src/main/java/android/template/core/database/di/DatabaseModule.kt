@@ -17,22 +17,26 @@
 package android.template.core.database.di
 
 import android.content.Context
+import android.template.core.database.AppDatabase
+import android.template.core.database.AppDatabase.Companion.DATABASE_NAME
+import android.template.core.database.dao.WeighbridgeRecordDao
 import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import android.template.core.database.AppDatabase
-import android.template.core.database.MyModelDao
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 class DatabaseModule {
+
+    // inject WeighbridgeRecordDao
     @Provides
-    fun provideMyModelDao(appDatabase: AppDatabase): MyModelDao {
-        return appDatabase.myModelDao()
+    @Singleton
+    fun provideWeighbridgeRecordDao(appDatabase: AppDatabase): WeighbridgeRecordDao {
+        return appDatabase.weighbridgeRecordDao()
     }
 
     @Provides
@@ -41,7 +45,7 @@ class DatabaseModule {
         return Room.databaseBuilder(
             appContext,
             AppDatabase::class.java,
-            "MyModel"
+            DATABASE_NAME
         ).build()
     }
 }

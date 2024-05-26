@@ -14,28 +14,26 @@
  * limitations under the License.
  */
 
-package android.template.core.database
+package android.template.core.database.model
 
-import androidx.room.Dao
 import androidx.room.Entity
-import androidx.room.Insert
 import androidx.room.PrimaryKey
-import androidx.room.Query
-import kotlinx.coroutines.flow.Flow
 
-@Entity
-data class MyModel(
-    val name: String
+@Entity(tableName = WeighbridgeRecordDbModel.TABLE_NAME)
+data class WeighbridgeRecordDbModel(
+    @PrimaryKey
+    val recordId: String,
+
+    val licenseNumber: String,
+    val driverName: String,
+    val type: String,
+    val tareWeight: Double,
+    val grossWeight: Double,
+    val entryDate: String,
 ) {
-    @PrimaryKey(autoGenerate = true)
-    var uid: Int = 0
+
+    companion object {
+        const val TABLE_NAME = "weighbridge_record"
+    }
 }
 
-@Dao
-interface MyModelDao {
-    @Query("SELECT * FROM mymodel ORDER BY uid DESC LIMIT 10")
-    fun getMyModels(): Flow<List<MyModel>>
-
-    @Insert
-    suspend fun insertMyModel(item: MyModel)
-}

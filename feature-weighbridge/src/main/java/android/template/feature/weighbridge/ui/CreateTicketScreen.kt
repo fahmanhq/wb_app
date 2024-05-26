@@ -1,5 +1,6 @@
 package android.template.feature.weighbridge.ui
 
+import android.template.core.data.model.FleetType
 import android.template.core.ui.MyApplicationTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
