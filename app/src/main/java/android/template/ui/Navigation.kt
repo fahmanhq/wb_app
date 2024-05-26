@@ -24,13 +24,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import android.template.feature.weighbridge.ui.HomeScreen
+import android.template.feature.weighbridge.ui.TicketFormScreen
 
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "main") {
-        composable("main") { HomeScreen(modifier = Modifier.padding(16.dp)) }
+        composable("main") { HomeScreen(
+            modifier = Modifier.padding(16.dp),
+            onCreateTicketBtnClicked = {
+                navController.navigate("ticket-form")
+            }
+        ) }
+        composable("ticket-form") { TicketFormScreen() }
         // TODO: Add more destinations
     }
 }

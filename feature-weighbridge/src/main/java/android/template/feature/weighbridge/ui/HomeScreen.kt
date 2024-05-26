@@ -42,7 +42,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
@@ -71,7 +70,11 @@ import java.util.Locale
 import android.template.core.ui.R as CoreUiR
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = hiltViewModel()) {
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    viewModel: MyModelViewModel = hiltViewModel(),
+    onCreateTicketBtnClicked: () -> Unit
+) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val items by produceState<MyModelUiState>(
         initialValue = MyModelUiState.Loading,
@@ -94,7 +97,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = hilt
                 WeighbridgeRecordSpec(
                     id = "SOME_ID_1",
                     dateTime = Date(),
-                    fleetType = FleetType.Inbound,
+                    fleetType = FleetType.INBOUND,
                     truckLicenseNumber = "F 1231 ABC",
                     driverName = "William Doe",
                     grossWeight = 100.0,
@@ -103,7 +106,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = hilt
                 WeighbridgeRecordSpec(
                     id = "SOME_ID_2",
                     dateTime = Date(),
-                    fleetType = FleetType.Outbound,
+                    fleetType = FleetType.OUTBOUND,
                     truckLicenseNumber = "F 1231 ABC",
                     driverName = "William Doe",
                     grossWeight = 1525.0,
@@ -112,7 +115,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = hilt
                 WeighbridgeRecordSpec(
                     id = "SOME_ID_1",
                     dateTime = Date(),
-                    fleetType = FleetType.Inbound,
+                    fleetType = FleetType.INBOUND,
                     truckLicenseNumber = "F 1231 ABC",
                     driverName = "William Doe",
                     grossWeight = 100.0,
@@ -121,7 +124,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = hilt
                 WeighbridgeRecordSpec(
                     id = "SOME_ID_2",
                     dateTime = Date(),
-                    fleetType = FleetType.Outbound,
+                    fleetType = FleetType.OUTBOUND,
                     truckLicenseNumber = "F 1231 ABC",
                     driverName = "William Doe",
                     grossWeight = 1525.0,
@@ -130,7 +133,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = hilt
                 WeighbridgeRecordSpec(
                     id = "SOME_ID_1",
                     dateTime = Date(),
-                    fleetType = FleetType.Inbound,
+                    fleetType = FleetType.INBOUND,
                     truckLicenseNumber = "F 1231 ABC",
                     driverName = "William Doe",
                     grossWeight = 100.0,
@@ -139,13 +142,13 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = hilt
                 WeighbridgeRecordSpec(
                     id = "SOME_ID_2",
                     dateTime = Date(),
-                    fleetType = FleetType.Outbound,
+                    fleetType = FleetType.OUTBOUND,
                     truckLicenseNumber = "F 1231 ABC",
                     driverName = "William Doe",
                     grossWeight = 1525.0,
                     netWeight = 1200.0,
                 ),
-            ), onSave = {})
+            ), onCreateTicketBtnClicked = onCreateTicketBtnClicked)
     }
 }
 
@@ -153,7 +156,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: MyModelViewModel = hilt
 internal fun HomeScreen(
     modifier: Modifier = Modifier,
     recordList: List<WeighbridgeRecordSpec>,
-    onSave: (name: String) -> Unit
+    onCreateTicketBtnClicked: () -> Unit
 ) {
     val listState = rememberLazyListState()
     val expandedFab by remember {
@@ -166,7 +169,7 @@ internal fun HomeScreen(
         modifier = modifier,
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { /* do something */ },
+                onClick = onCreateTicketBtnClicked,
                 expanded = expandedFab,
                 icon = { Icon(Icons.Filled.Add, "Localized Description") },
                 text = { Text(text = "Create Ticket") },
@@ -188,8 +191,8 @@ internal fun HomeScreen(
 }
 
 enum class FleetType {
-    Inbound,
-    Outbound
+    INBOUND,
+    OUTBOUND
 }
 
 data class WeighbridgeRecordSpec(
@@ -221,8 +224,8 @@ private fun RecordCard(
             modifier = Modifier.padding(16.dp)
         ) {
             val labelBackgroundColor = when (spec.fleetType) {
-                FleetType.Inbound -> Color.Green
-                FleetType.Outbound -> Color.Cyan
+                FleetType.INBOUND -> Color.Green
+                FleetType.OUTBOUND -> Color.Cyan
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -235,12 +238,12 @@ private fun RecordCard(
                 Spacer(modifier = Modifier.weight(1f))
 
                 val fleetIconResId = when (spec.fleetType) {
-                    FleetType.Inbound -> CoreUiR.drawable.ic_inbound
-                    FleetType.Outbound -> CoreUiR.drawable.ic_outbound
+                    FleetType.INBOUND -> CoreUiR.drawable.ic_inbound
+                    FleetType.OUTBOUND -> CoreUiR.drawable.ic_outbound
                 }
                 val fleetTypeLabel = when (spec.fleetType) {
-                    FleetType.Inbound -> "INBOUND"
-                    FleetType.Outbound -> "OUTBOUND"
+                    FleetType.INBOUND -> "INBOUND"
+                    FleetType.OUTBOUND -> "OUTBOUND"
                 }
                 TextWithIcon(
                     modifier = Modifier
@@ -334,7 +337,7 @@ private fun DefaultPreview() {
                 WeighbridgeRecordSpec(
                     id = "SOME_ID_1",
                     dateTime = Date(),
-                    fleetType = FleetType.Inbound,
+                    fleetType = FleetType.INBOUND,
                     truckLicenseNumber = "F 1231 ABC",
                     driverName = "William Doe",
                     grossWeight = 100.0,
@@ -343,13 +346,13 @@ private fun DefaultPreview() {
                 WeighbridgeRecordSpec(
                     id = "SOME_ID_2",
                     dateTime = Date(),
-                    fleetType = FleetType.Outbound,
+                    fleetType = FleetType.OUTBOUND,
                     truckLicenseNumber = "F 1231 ABC",
                     driverName = "William Doe",
                     grossWeight = 1525.0,
                     netWeight = 1200.0,
                 )
-            ), onSave = {})
+            ), onCreateTicketBtnClicked = {})
     }
 }
 
@@ -362,7 +365,7 @@ private fun PortraitPreview() {
                 WeighbridgeRecordSpec(
                     id = "SOME_ID_1",
                     dateTime = Date(),
-                    fleetType = FleetType.Inbound,
+                    fleetType = FleetType.INBOUND,
                     truckLicenseNumber = "F 1231 ABC",
                     driverName = "William Doe",
                     grossWeight = 100.0,
@@ -371,13 +374,13 @@ private fun PortraitPreview() {
                 WeighbridgeRecordSpec(
                     id = "SOME_ID_2",
                     dateTime = Date(),
-                    fleetType = FleetType.Outbound,
+                    fleetType = FleetType.OUTBOUND,
                     truckLicenseNumber = "F 1231 ABC",
                     driverName = "William Doe",
                     grossWeight = 1525.0,
                     netWeight = 1200.0,
                 )
-            ), onSave = {})
+            ), onCreateTicketBtnClicked = {})
     }
 }
 
@@ -392,7 +395,7 @@ private fun RecordCardPreview() {
             spec = WeighbridgeRecordSpec(
                 id = "SOME_ID_1",
                 dateTime = Date(),
-                fleetType = FleetType.Inbound,
+                fleetType = FleetType.INBOUND,
                 truckLicenseNumber = "F 1231 ABC",
                 driverName = "William Doe",
                 grossWeight = 100.0,
@@ -404,7 +407,7 @@ private fun RecordCardPreview() {
             spec = WeighbridgeRecordSpec(
                 id = "SOME_ID_2",
                 dateTime = Date(),
-                fleetType = FleetType.Outbound,
+                fleetType = FleetType.OUTBOUND,
                 truckLicenseNumber = "F 1231 ABC",
                 driverName = "William Doe",
                 grossWeight = 1525.0,

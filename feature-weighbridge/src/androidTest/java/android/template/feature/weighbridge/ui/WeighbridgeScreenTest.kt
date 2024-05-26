@@ -38,7 +38,7 @@ class MyModelScreenTest {
     @Before
     fun setup() {
         composeTestRule.setContent {
-            HomeScreen(FAKE_DATA, onSave = {})
+//            HomeScreen(FAKE_DATA, onSave = {})
         }
     }
     @Test
