@@ -16,6 +16,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
@@ -31,7 +32,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -63,7 +67,8 @@ fun TicketFormScreen(
     recordId: String?,
     mode: FormMode,
     onBackButtonClicked: () -> Unit,
-    onRecordSaved: () -> Unit
+    onRecordSaved: () -> Unit,
+    onRecordDeleted: () -> Unit
 ) {
     LaunchedEffect(recordId) {
         viewModel.init(recordId, mode)
@@ -85,7 +90,7 @@ fun TicketFormScreen(
         when (saveProgressState) {
             is Resource.Error -> {
                 saveProgressState.error.consumeOnce {
-                    Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Save Failed", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -96,6 +101,24 @@ fun TicketFormScreen(
                 }
                 Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
                 onRecordSaved()
+            }
+
+            else -> {}
+        }
+    }
+
+    val deleteProgressState = uiState.deleteProgressState
+    LaunchedEffect(deleteProgressState) {
+        when (deleteProgressState) {
+            is Resource.Error -> {
+                deleteProgressState.error.consumeOnce {
+                    Toast.makeText(context, "Delete Failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            is Resource.Success -> {
+                Toast.makeText(context, "Ticket Deleted", Toast.LENGTH_SHORT).show()
+                onRecordDeleted()
             }
 
             else -> {}
@@ -125,6 +148,9 @@ fun TicketFormScreen(
         },
         onEditButtonClicked = {
             viewModel.onEditButtonClicked()
+        },
+        onDeleteActionConfirmed = {
+            viewModel.onDeleteActionConfirmed()
         }
     )
 }
@@ -139,7 +165,8 @@ private fun TicketFormScreen(
     onTareWeightChanged: (String) -> Unit,
     onGrossWeightChanged: (String) -> Unit,
     onSaveBtnClicked: () -> Unit,
-    onEditButtonClicked: () -> Unit
+    onEditButtonClicked: () -> Unit,
+    onDeleteActionConfirmed: () -> Unit = {}
 ) {
     val formMode = uiState.mode
     val formValues = uiState.formValues
@@ -152,6 +179,8 @@ private fun TicketFormScreen(
     val isEditableMode = formMode != FormMode.VIEW
     val recordId = formValues.recordId
     val readableId = recordId?.let { RecordIdFormatter.format(it) }.orEmpty()
+
+    var isDeletePopUpShown by remember { mutableStateOf(false)}
 
     val netWeight = (grossWeight.toDoubleOrNull() ?: 0.0) - (tareWeight.toDoubleOrNull() ?: 0.0)
 
@@ -172,7 +201,10 @@ private fun TicketFormScreen(
                 },
                 formMode = formMode,
                 onBackButtonClick = onBackButtonClicked,
-                onEditButtonClick = onEditButtonClicked
+                onEditButtonClick = onEditButtonClicked,
+                onDeleteButtonClick = {
+                    isDeletePopUpShown = true
+                }
             )
         }
     ) {
@@ -300,6 +332,18 @@ private fun TicketFormScreen(
             }
         }
     }
+
+    if (isDeletePopUpShown) {
+        ConfirmationDialog(
+            title = "Confirm Delete",
+            message = "Are you sure you want to delete this ticket?",
+            onDismiss = { isDeletePopUpShown = false },
+            onConfirm = {
+                onDeleteActionConfirmed()
+                isDeletePopUpShown = false
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -308,7 +352,8 @@ fun AppBarWithBackButtonAndTitle(
     title: String,
     formMode: FormMode,
     onBackButtonClick: () -> Unit,
-    onEditButtonClick: () -> Unit
+    onEditButtonClick: () -> Unit,
+    onDeleteButtonClick: () -> Unit
 ) {
     TopAppBar(
         title = {
@@ -332,7 +377,14 @@ fun AppBarWithBackButtonAndTitle(
                 IconButton(onClick = onEditButtonClick) {
                     Icon(
                         imageVector = Icons.Filled.Edit,
-                        contentDescription = "Edit"
+                        contentDescription = "Edit Record"
+                    )
+                }
+            } else if (formMode == FormMode.EDIT) {
+                IconButton(onClick = onDeleteButtonClick) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "Delete Record"
                     )
                 }
             }

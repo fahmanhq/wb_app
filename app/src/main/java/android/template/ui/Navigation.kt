@@ -71,6 +71,9 @@ fun MainNavigation() {
                 onBackButtonClicked = { navController.popBackStack() },
                 onRecordSaved = {
                     navController.popBackStack()
+                },
+                onRecordDeleted = {
+                    navController.popBackStack()
                 }
             )
         }

@@ -130,12 +130,31 @@ class CreateTicketFormViewModel @Inject constructor(
         )
     }
 
+    fun onDeleteActionConfirmed() {
+        viewModelScope.launch {
+            runCatching {
+                recordRepository.deleteWeighbridgeRecordById(
+                    recordId = _uiState.value.formValues.recordId!!
+                )
+            }.onFailure {
+                _uiState.value = _uiState.value.copy(
+                    deleteProgressState = Resource.Error(it)
+                )
+            }.onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    deleteProgressState = Resource.Success(Unit)
+                )
+            }
+        }
+    }
+
 }
 
 data class CreateTicketFormUiState(
     val formValues: FormValues = FormValues(),
     val mode: FormMode = FormMode.CREATE,
-    val saveProgressState: Resource<WeighbridgeRecord>? = null
+    val saveProgressState: Resource<WeighbridgeRecord>? = null,
+    val deleteProgressState: Resource<Unit>? = null
 ) {
     data class FormValues(
         val entryDate: Date = Calendar.getInstance().time,
