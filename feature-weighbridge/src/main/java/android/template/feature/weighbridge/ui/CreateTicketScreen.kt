@@ -2,6 +2,7 @@ package android.template.feature.weighbridge.ui
 
 import android.template.core.data.model.FleetType
 import android.template.core.ui.MyApplicationTheme
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,29 +19,109 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import java.text.DateFormat
-import java.util.Calendar
 
 @Composable
-fun TicketFormScreen(modifier: Modifier = Modifier) {
-    var licenseNumber by remember { mutableStateOf("") }
-    var driverName by remember { mutableStateOf("") }
-    var fleetType by remember { mutableStateOf(FleetType.INBOUND) }
-    var tareWeight by remember { mutableStateOf("") }
-    var grossWeight by remember { mutableStateOf("") }
-    val currentDateAndTime = remember { mutableStateOf(Calendar.getInstance().time) }
+fun TicketFormScreen(
+    modifier: Modifier = Modifier,
+    viewModel: CreateTicketFormViewModel = hiltViewModel(),
+    onRecordSaved: () -> Unit
+) {
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val uiState by produceState(
+        initialValue = CreateTicketFormUiState(),
+        key1 = lifecycle,
+        key2 = viewModel
+    ) {
+        lifecycle.repeatOnLifecycle(state = Lifecycle.State.STARTED) {
+            viewModel.uiState.collect { value = it }
+        }
+    }
+
+    val context = LocalContext.current
+    val saveProgressState = uiState.saveProgressState
+    LaunchedEffect(saveProgressState) {
+        when (saveProgressState) {
+            is Resource.Error -> {
+                saveProgressState.error.consumeOnce {
+                    Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+            is Resource.Success -> {
+                Toast.makeText(context, "Successfully created the ticket", Toast.LENGTH_SHORT).show()
+                onRecordSaved()
+            }
+            else -> {}
+        }
+    }
+
+    TicketFormScreen(
+        modifier = modifier,
+        uiState = uiState,
+        onPickFleetType = {
+            viewModel.onPickFleetType(it)
+        },
+        onLicenseNumberChanged = {
+            viewModel.onLicenseNumberChanged(it)
+        },
+        onDriverNameChanged = {
+            viewModel.onDriverNameChanged(it)
+        },
+        onTareWeightChanged = {
+            viewModel.onTareWeightChanged(it)
+        },
+        onGrossWeightChanged = {
+            viewModel.onGrossWeightChanged(it)
+        },
+        onSaveBtnClicked = {
+            viewModel.onSaveBtnClicked()
+        }
+    )
+}
+
+@Composable
+private fun TicketFormScreen(
+    modifier: Modifier = Modifier,
+    uiState: CreateTicketFormUiState,
+    onPickFleetType: (type: FleetType) -> Unit,
+    onLicenseNumberChanged: (String) -> Unit,
+    onDriverNameChanged: (String) -> Unit,
+    onTareWeightChanged: (String) -> Unit,
+    onGrossWeightChanged: (String) -> Unit,
+    onSaveBtnClicked: () -> Unit
+) {
+    val formValues = uiState.formValues
+    val entryDate = formValues.entryDate
+    val fleetType = formValues.fleetType
+    val licenseNumber = formValues.licenseNumber
+    val driverName = formValues.driverName
+    val tareWeight = formValues.tareWeight
+    val grossWeight = formValues.grossWeight
+
+    val netWeight = (grossWeight.toDoubleOrNull() ?: 0.0) - (tareWeight.toDoubleOrNull() ?: 0.0)
+
+    val saveBtnEnabled =
+            licenseNumber.isNotBlank() &&
+                    driverName.isNotBlank() &&
+                    tareWeight.isNotBlank() &&
+                    grossWeight.isNotBlank() &&
+                    netWeight > 0.0
 
     Column(
         modifier = modifier
@@ -49,7 +130,9 @@ fun TicketFormScreen(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "Entry Time : ${DateFormat.getDateTimeInstance().format(currentDateAndTime.value)}",
+            text = "Entry Time : ${
+                DateFormat.getDateTimeInstance().format(entryDate)
+            }",
             style = MaterialTheme.typography.bodySmall
         )
 
@@ -67,7 +150,7 @@ fun TicketFormScreen(modifier: Modifier = Modifier) {
                         .selectable(
                             selected = (type == fleetType),
                             onClick = {
-                                fleetType = type
+                                onPickFleetType(type)
                             },
                             role = Role.RadioButton
                         )
@@ -76,7 +159,7 @@ fun TicketFormScreen(modifier: Modifier = Modifier) {
                 ) {
                     RadioButton(
                         selected = (type == fleetType),
-                        onClick = null // null recommended for accessibility with screenreaders
+                        onClick = null
                     )
                     Text(
                         text = type.name,
@@ -87,10 +170,9 @@ fun TicketFormScreen(modifier: Modifier = Modifier) {
             }
         }
 
-        // License number field
         OutlinedTextField(
             value = licenseNumber,
-            onValueChange = { licenseNumber = it },
+            onValueChange = onLicenseNumberChanged,
             label = { Text("License Number") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(
@@ -100,10 +182,9 @@ fun TicketFormScreen(modifier: Modifier = Modifier) {
             singleLine = true
         )
 
-        // Driver name field
         OutlinedTextField(
             value = driverName,
-            onValueChange = { driverName = it },
+            onValueChange = onDriverNameChanged,
             label = { Text("Driver Name") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(
@@ -113,10 +194,9 @@ fun TicketFormScreen(modifier: Modifier = Modifier) {
             singleLine = true
         )
 
-        // Tare weight field
         OutlinedTextField(
             value = tareWeight,
-            onValueChange = { tareWeight = it.takeWhile { it.isDigit() } },
+            onValueChange = onTareWeightChanged,
             label = { Text("Tare Weight") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(
@@ -127,10 +207,9 @@ fun TicketFormScreen(modifier: Modifier = Modifier) {
             singleLine = true,
         )
 
-        // Gross weight field
         OutlinedTextField(
             value = grossWeight,
-            onValueChange = { grossWeight = it.takeWhile { it.isDigit() } },
+            onValueChange = onGrossWeightChanged,
             label = { Text("Gross Weight") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(
@@ -140,20 +219,17 @@ fun TicketFormScreen(modifier: Modifier = Modifier) {
             singleLine = true,
         )
 
-        val netWeight = (grossWeight.toDoubleOrNull() ?: 0.0) - (tareWeight.toDoubleOrNull() ?: 0.0)
-
-        // Net weight field
         OutlinedTextField(
             value = WeightFormatter().format(netWeight),
-            onValueChange = {}, // Non-editable field
+            onValueChange = {},
             label = { Text("Net Weight") },
             modifier = Modifier.fillMaxWidth(),
             enabled = false
         )
 
-        // Save button
         Button(
-            onClick = { /* Save the form data */ },
+            enabled = saveBtnEnabled,
+            onClick = onSaveBtnClicked,
             modifier = Modifier.align(Alignment.End)
         ) {
             Text("Save")
@@ -165,6 +241,16 @@ fun TicketFormScreen(modifier: Modifier = Modifier) {
 @Composable
 private fun TicketFormScreenPreview() {
     MyApplicationTheme {
-        TicketFormScreen()
+        TicketFormScreen(
+            uiState = CreateTicketFormUiState(
+                formValues = CreateTicketFormUiState.FormValues()
+            ),
+            onPickFleetType = {},
+            onLicenseNumberChanged = {},
+            onDriverNameChanged = {},
+            onTareWeightChanged = {},
+            onGrossWeightChanged = {},
+            onSaveBtnClicked = {}
+        )
     }
 }

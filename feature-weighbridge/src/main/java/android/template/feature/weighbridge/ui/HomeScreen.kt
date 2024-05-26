@@ -88,71 +88,11 @@ fun HomeScreen(
     }
     if (items is RecordListUiState.Success) {
         HomeScreen(
+            modifier = modifier,
             recordList = (items as RecordListUiState.Success).data,
             onCreateTicketBtnClicked = onCreateTicketBtnClicked
         )
     }
-//
-//        HomeScreen(
-//            recordList = listOf(
-//                WeighbridgeRecordSpec(
-//                    id = "SOME_ID_1",
-//                    dateTime = Date(),
-//                    fleetType = FleetType.INBOUND,
-//                    truckLicenseNumber = "F 1231 ABC",
-//                    driverName = "William Doe",
-//                    grossWeight = 100.0,
-//                    netWeight = 90.0,
-//                ),
-//                WeighbridgeRecordSpec(
-//                    id = "SOME_ID_2",
-//                    dateTime = Date(),
-//                    fleetType = FleetType.OUTBOUND,
-//                    truckLicenseNumber = "F 1231 ABC",
-//                    driverName = "William Doe",
-//                    grossWeight = 1525.0,
-//                    netWeight = 1200.0,
-//                ),
-//                WeighbridgeRecordSpec(
-//                    id = "SOME_ID_1",
-//                    dateTime = Date(),
-//                    fleetType = FleetType.INBOUND,
-//                    truckLicenseNumber = "F 1231 ABC",
-//                    driverName = "William Doe",
-//                    grossWeight = 100.0,
-//                    netWeight = 90.0,
-//                ),
-//                WeighbridgeRecordSpec(
-//                    id = "SOME_ID_2",
-//                    dateTime = Date(),
-//                    fleetType = FleetType.OUTBOUND,
-//                    truckLicenseNumber = "F 1231 ABC",
-//                    driverName = "William Doe",
-//                    grossWeight = 1525.0,
-//                    netWeight = 1200.0,
-//                ),
-//                WeighbridgeRecordSpec(
-//                    id = "SOME_ID_1",
-//                    dateTime = Date(),
-//                    fleetType = FleetType.INBOUND,
-//                    truckLicenseNumber = "F 1231 ABC",
-//                    driverName = "William Doe",
-//                    grossWeight = 100.0,
-//                    netWeight = 90.0,
-//                ),
-//                WeighbridgeRecordSpec(
-//                    id = "SOME_ID_2",
-//                    dateTime = Date(),
-//                    fleetType = FleetType.OUTBOUND,
-//                    truckLicenseNumber = "F 1231 ABC",
-//                    driverName = "William Doe",
-//                    grossWeight = 1525.0,
-//                    netWeight = 1200.0,
-//                ),
-//            ),
-//            onCreateTicketBtnClicked = onCreateTicketBtnClicked
-//        )
-//    }
 }
 
 @Composable
@@ -183,7 +123,7 @@ internal fun HomeScreen(
         LazyColumn(
             modifier = Modifier.padding(it),
             state = listState,
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(top = 16.dp, bottom = 88.dp, start = 16.dp, end = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(recordList) {

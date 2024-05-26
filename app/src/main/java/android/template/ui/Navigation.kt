@@ -16,15 +16,12 @@
 
 package android.template.ui
 
-import androidx.compose.foundation.layout.padding
+import android.template.feature.weighbridge.ui.HomeScreen
+import android.template.feature.weighbridge.ui.TicketFormScreen
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import android.template.feature.weighbridge.ui.HomeScreen
-import android.template.feature.weighbridge.ui.TicketFormScreen
 
 @Composable
 fun MainNavigation() {
@@ -32,12 +29,16 @@ fun MainNavigation() {
 
     NavHost(navController = navController, startDestination = "main") {
         composable("main") { HomeScreen(
-            modifier = Modifier.padding(16.dp),
             onCreateTicketBtnClicked = {
                 navController.navigate("ticket-form")
             }
         ) }
-        composable("ticket-form") { TicketFormScreen() }
-        // TODO: Add more destinations
+        composable("ticket-form") {
+            TicketFormScreen(
+                onRecordSaved = {
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 }
