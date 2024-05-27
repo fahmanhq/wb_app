@@ -1,0 +1,79 @@
+package android.template.core.data.repository
+
+import android.template.core.data.model.FleetType
+import android.template.core.data.model.WeighbridgeRecord
+import android.template.core.database.dao.WeighbridgeRecordDao
+import android.template.core.database.model.WeighbridgeRecordDbModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.text.SimpleDateFormat
+import javax.inject.Inject
+
+class DefaultWeighbridgeRecordRepository @Inject constructor(
+    private val weighbridgeRecordDao: WeighbridgeRecordDao
+) : WeighbridgeRecordRepository {
+
+    private val dateFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+
+    override suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord) {
+        weighbridgeRecordDao.insertWeighbridgeRecord(
+            WeighbridgeRecordDbModel(
+                recordId = record.recordId,
+                type = record.fleetType.name,
+                licenseNumber = record.licenseNumber,
+                driverName = record.driverName,
+                tareWeight = record.tareWeight,
+                grossWeight = record.grossWeight,
+                entryDate = dateFormatter.format(record.entryDate)
+            )
+        )
+    }
+
+    override fun getAllWeighbridgeRecords(): Flow<List<WeighbridgeRecord>> {
+        return weighbridgeRecordDao.getAllWeighbridgeRecords()
+            .map {
+                it.map {
+                    WeighbridgeRecord(
+                        recordId = it.recordId,
+                        fleetType = FleetType.valueOf(it.type),
+                        licenseNumber = it.licenseNumber,
+                        driverName = it.driverName,
+                        tareWeight = it.tareWeight,
+                        grossWeight = it.grossWeight,
+                        entryDate = dateFormatter.parse(it.entryDate)
+                    )
+                }
+            }
+    }
+
+    override suspend fun getWeighbridgeRecordById(recordId: String): WeighbridgeRecord? {
+        return weighbridgeRecordDao.getWeighbridgeRecordById(recordId)
+            ?.let {
+                WeighbridgeRecord(
+                    recordId = it.recordId,
+                    fleetType = FleetType.valueOf(it.type),
+                    licenseNumber = it.licenseNumber,
+                    driverName = it.driverName,
+                    tareWeight = it.tareWeight,
+                    grossWeight = it.grossWeight,
+                    entryDate = dateFormatter.parse(it.entryDate)
+                )
+            }
+    }
+
+    override suspend fun deleteWeighbridgeRecordById(recordId: String) {
+        weighbridgeRecordDao.deleteWeighbridgeRecordById(recordId)
+    }
+
+    override suspend fun deleteAllWeighbridgeRecords() {
+        weighbridgeRecordDao.deleteAllWeighbridgeRecords()
+    }
+}
+
+interface WeighbridgeRecordRepository {
+    suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord)
+    fun getAllWeighbridgeRecords(): Flow<List<WeighbridgeRecord>>
+    suspend fun getWeighbridgeRecordById(recordId: String): WeighbridgeRecord?
+    suspend fun deleteWeighbridgeRecordById(recordId: String)
+    suspend fun deleteAllWeighbridgeRecords()
+}

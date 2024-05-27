@@ -16,10 +16,17 @@
 
 package android.template.core.database
 
+import android.template.core.database.dao.WeighbridgeRecordDao
+import android.template.core.database.model.WeighbridgeRecordDbModel
 import androidx.room.Database
 import androidx.room.RoomDatabase
 
-@Database(entities = [MyModel::class], version = 1)
+@Database(entities = [WeighbridgeRecordDbModel::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun myModelDao(): MyModelDao
+
+    abstract fun weighbridgeRecordDao(): WeighbridgeRecordDao
+
+    companion object {
+        const val DATABASE_NAME = "weighbridge_db"
+    }
 }

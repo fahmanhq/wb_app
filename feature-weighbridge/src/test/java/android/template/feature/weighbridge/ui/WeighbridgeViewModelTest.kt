@@ -17,6 +17,9 @@
 package android.template.feature.weighbridge.ui.mymodel
 
 
+import android.template.core.data.MyModelRepository
+import android.template.feature.weighbridge.ui.RecordListUiState
+import android.template.feature.weighbridge.ui.RecordListViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -24,9 +27,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import android.template.core.data.MyModelRepository
-import android.template.feature.weighbridge.ui.MyModelUiState
-import android.template.feature.weighbridge.ui.MyModelViewModel
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -34,17 +34,17 @@ import android.template.feature.weighbridge.ui.MyModelViewModel
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 @OptIn(ExperimentalCoroutinesApi::class) // TODO: Remove when stable
-class MyModelViewModelTest {
+class RecordListViewModelTest {
     @Test
     fun uiState_initiallyLoading() = runTest {
-        val viewModel = MyModelViewModel(FakeMyModelRepository())
-        assertEquals(viewModel.uiState.first(), MyModelUiState.Loading)
+        val viewModel = RecordListViewModel(FakeMyModelRepository())
+        assertEquals(viewModel.uiState.first(), RecordListUiState.Loading)
     }
 
     @Test
     fun uiState_onItemSaved_isDisplayed() = runTest {
-        val viewModel = MyModelViewModel(FakeMyModelRepository())
-        assertEquals(viewModel.uiState.first(), MyModelUiState.Loading)
+        val viewModel = RecordListViewModel(FakeMyModelRepository())
+        assertEquals(viewModel.uiState.first(), RecordListUiState.Loading)
     }
 }
 

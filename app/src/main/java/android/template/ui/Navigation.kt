@@ -16,21 +16,66 @@
 
 package android.template.ui
 
-import androidx.compose.foundation.layout.padding
+import android.template.feature.weighbridge.ui.FormMode
+import android.template.feature.weighbridge.ui.HomeScreen
+import android.template.feature.weighbridge.ui.TicketFormScreen
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import android.template.feature.weighbridge.ui.MyModelScreen
+import androidx.navigation.navArgument
 
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "main") {
-        composable("main") { MyModelScreen(modifier = Modifier.padding(16.dp)) }
-        // TODO: Add more destinations
+    NavHost(
+        navController = navController,
+        startDestination = "main"
+    ) {
+        composable("main") {
+            HomeScreen(
+                navController = navController,
+                onCreateTicketBtnClicked = {
+                    navController.navigate("ticket-form")
+                },
+                onViewDetailsBtnClicked = {
+                    navController.navigate("ticket-form?recordId=$it&mode=${FormMode.VIEW.name}")
+                },
+                onEditBtnClicked = {
+                    navController.navigate("ticket-form?recordId=$it&mode=${FormMode.EDIT.name}")
+                },
+            )
+        }
+        composable(
+            route = "ticket-form?recordId={recordId}&mode={mode}",
+            arguments = listOf(
+                navArgument("recordId") {
+                    type = NavType.StringType
+                    nullable = true
+                },
+                navArgument("mode") {
+                    type = NavType.StringType
+                    defaultValue = FormMode.CREATE.name
+                }
+            )
+        ) {
+            val recordId = it.arguments?.getString("recordId")
+            val mode = it.arguments?.getString("mode")?.let { FormMode.valueOf(it) }!!
+
+            TicketFormScreen(
+                navController = navController,
+                recordId = recordId,
+                mode = mode,
+                onBackButtonClicked = { navController.popBackStack() },
+                onRecordSaved = {
+                    navController.popBackStack()
+                },
+                onRecordDeleted = {
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 }

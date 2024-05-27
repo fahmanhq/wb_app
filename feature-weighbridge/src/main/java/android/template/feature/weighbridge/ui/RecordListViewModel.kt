@@ -16,6 +16,11 @@
 
 package android.template.feature.weighbridge.ui
 
+import android.template.core.data.model.WeighbridgeRecord
+import android.template.core.data.repository.WeighbridgeRecordRepository
+import android.template.feature.weighbridge.ui.RecordListUiState.Error
+import android.template.feature.weighbridge.ui.RecordListUiState.Loading
+import android.template.feature.weighbridge.ui.RecordListUiState.Success
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,32 +29,22 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import android.template.core.data.MyModelRepository
-import android.template.feature.weighbridge.ui.MyModelUiState.Error
-import android.template.feature.weighbridge.ui.MyModelUiState.Loading
-import android.template.feature.weighbridge.ui.MyModelUiState.Success
 import javax.inject.Inject
 
 @HiltViewModel
-class MyModelViewModel @Inject constructor(
-    private val myModelRepository: MyModelRepository
+class RecordListViewModel @Inject constructor(
+    private val recordRepository: WeighbridgeRecordRepository
 ) : ViewModel() {
 
-    val uiState: StateFlow<MyModelUiState> = myModelRepository
-        .myModels.map<List<String>, MyModelUiState> { Success(data = it) }
-        .catch { emit(Error(it)) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Loading)
-
-    fun addMyModel(name: String) {
-        viewModelScope.launch {
-            myModelRepository.add(name)
-        }
-    }
+    val uiState: StateFlow<RecordListUiState> =
+        recordRepository.getAllWeighbridgeRecords()
+            .map<List<WeighbridgeRecord>, RecordListUiState> { Success(data = it) }
+            .catch { emit(Error(it)) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Loading)
 }
 
-sealed interface MyModelUiState {
-    object Loading : MyModelUiState
-    data class Error(val throwable: Throwable) : MyModelUiState
-    data class Success(val data: List<String>) : MyModelUiState
+sealed interface RecordListUiState {
+    object Loading : RecordListUiState
+    data class Error(val throwable: Throwable) : RecordListUiState
+    data class Success(val data: List<WeighbridgeRecord>) : RecordListUiState
 }
