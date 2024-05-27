@@ -1,4 +1,4 @@
-package android.template.feature.weighbridge.ui
+package android.template.feature.weighbridge.ui.list
 
 import android.template.core.data.model.SortingOption
 import android.template.core.ui.Typography
@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun SortingDialog(
-    appliedFilter: RecordListViewModel.FilterParam,
+    appliedFilter: TicketListSortingParam,
     onDismissRequest: () -> Unit,
     onSortOptionSelected: (SortingOption, Boolean) -> Unit
 ) {
@@ -133,7 +133,7 @@ fun SortingDialog(
 @Composable
 private fun SortingDialogPreview() {
     SortingDialog(
-        appliedFilter = RecordListViewModel.FilterParam(),
+        appliedFilter = TicketListSortingParam(),
         onDismissRequest = {},
         onSortOptionSelected = { _, _ -> }
     )

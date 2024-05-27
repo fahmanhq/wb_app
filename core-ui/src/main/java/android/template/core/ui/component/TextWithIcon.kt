@@ -1,15 +1,19 @@
-package android.template.feature.weighbridge.ui
+package android.template.core.ui.component
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -28,12 +32,22 @@ fun TextWithIcon(
         Icon(
             modifier = Modifier.size(iconSize),
             imageVector = icon,
-            contentDescription = null // Set a content description if needed
+            contentDescription = null
         )
         Text(
             text = text,
             style = textStyle,
-            modifier = Modifier.padding(start = 8.dp) // Add padding between the icon and text
+            modifier = Modifier.padding(start = 8.dp)
         )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TextWithIconPreview() {
+    TextWithIcon(
+        text = "Search",
+        textStyle = MaterialTheme.typography.bodyLarge,
+        icon = Icons.Filled.Search
+    )
 }

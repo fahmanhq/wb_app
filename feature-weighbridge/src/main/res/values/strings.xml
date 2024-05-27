@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="weighbridge_ticketing_title">Weighbridge Ticketing</string>
+    <string name="content_desc_filter_menu">Filter Records</string>
+    <string name="content_desc_create_ticket_button">Create Ticket Button</string>
+    <string name="create_ticket_btn_label">Create Ticket</string>
+    <string name="ticket_id_title">TICKET %1$s</string>
+    <string name="inbound_indicator_label">INBOUND</string>
+    <string name="outbound_indicator_label">OUTBOUND</string>
+    <string name="card_entry_time_template">at %1$s</string>
+    <string name="card_truck_license_number_field">Truck License Number:</string>
+    <string name="card_driver_name_field">Driver Name:</string>
+    <string name="card_gross_weight_field">Gross Weight:</string>
+    <string name="card_net_weight_field">Net Weight:</string>
+    <string name="card_view_ticket_details_btn_label">View Details</string>
+    <string name="card_edit_ticket_btn_label">Edit</string>
+    <string name="save_failed">Save Failed</string>
+    <string name="ticket_updated">Ticket Updated</string>
+    <string name="ticket_created">Ticket Created</string>
+    <string name="ticket_delete_failed">Delete Failed</string>
+    <string name="ticket_deleted">Ticket Deleted</string>
+    <string name="create_ticket_title">Create Ticket</string>
+    <string name="edit_ticket_title">Edit Ticket %1$s</string>
+    <string name="ticket_detail_title">Ticket %1$s</string>
+    <string name="entry_time_template">Entry Time : %1$s</string>
+    <string name="ticket_form_fleet_type">Fleet Type</string>
+    <string name="ticket_form_license_number">License Number</string>
+    <string name="ticket_form_driver_name">Driver Name</string>
+    <string name="ticket_form_tare_weight">Tare Weight</string>
+    <string name="ticket_form_gross_weight">Gross Weight</string>
+    <string name="kilograms_unit">kg</string>
+    <string name="ticket_form_net_weight">Net Weight</string>
+    <string name="ticket_form_save_btn_label">Save</string>
+    <string name="ticket_form_confirm_delete_dialog_title">Confirm Delete</string>
+    <string name="ticket_form_confirm_delete_dialog_message">Are you sure you want to delete this ticket?</string>
+</resources>

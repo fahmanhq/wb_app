@@ -1,6 +1,7 @@
-package android.template.feature.weighbridge.ui
+package android.template.feature.weighbridge.ui.detail
 
 import android.template.core.data.model.FleetType
+import android.template.core.data.model.Resource
 import android.template.core.data.model.WeighbridgeRecord
 import android.template.core.data.repository.WeighbridgeRecordRepository
 import androidx.lifecycle.ViewModel
@@ -13,7 +14,6 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 @HiltViewModel
@@ -167,25 +167,3 @@ data class CreateTicketFormUiState(
     )
 }
 
-sealed class Resource<T> {
-    class Loading<T> : Resource<T>()
-    class Success<T>(val data: T) : Resource<T>()
-    class Error<T>(_error: Throwable) : Resource<T>() {
-        val error: Event<Throwable> = Event(_error)
-    }
-}
-
-class Event<T>(private val data: T) {
-    private var consumed = AtomicBoolean(false)
-    fun consumeOnce(consumer: (T) -> Unit) {
-        if (consumed.compareAndSet(false, true)) {
-            consumer(data)
-        }
-    }
-
-    fun peek(): T? = if (consumed.get()) null else data
-
-    fun dispose() {
-        consumed.compareAndSet(false, true)
-    }
-}

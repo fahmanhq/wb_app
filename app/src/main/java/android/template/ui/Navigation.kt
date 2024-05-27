@@ -16,9 +16,9 @@
 
 package android.template.ui
 
-import android.template.feature.weighbridge.ui.FormMode
-import android.template.feature.weighbridge.ui.HomeScreen
-import android.template.feature.weighbridge.ui.TicketFormScreen
+import android.template.feature.weighbridge.ui.detail.FormMode
+import android.template.feature.weighbridge.ui.detail.TicketFormScreen
+import android.template.feature.weighbridge.ui.list.HomeScreen
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -36,7 +36,6 @@ fun MainNavigation() {
     ) {
         composable("main") {
             HomeScreen(
-                navController = navController,
                 onCreateTicketBtnClicked = {
                     navController.navigate("ticket-form")
                 },
@@ -65,7 +64,6 @@ fun MainNavigation() {
             val mode = it.arguments?.getString("mode")?.let { FormMode.valueOf(it) }!!
 
             TicketFormScreen(
-                navController = navController,
                 recordId = recordId,
                 mode = mode,
                 onBackButtonClicked = { navController.popBackStack() },

@@ -8,13 +8,14 @@ import android.template.core.database.model.WeighbridgeRecordDbModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.text.SimpleDateFormat
+import java.util.Locale
 import javax.inject.Inject
 
 class DefaultWeighbridgeRecordRepository @Inject constructor(
     private val weighbridgeRecordDao: WeighbridgeRecordDao
 ) : WeighbridgeRecordRepository {
 
-    private val dateFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    private val dateFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US)
 
     override suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord) {
         weighbridgeRecordDao.insertWeighbridgeRecord(
@@ -41,7 +42,7 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
                         driverName = it.driverName,
                         tareWeight = it.tareWeight,
                         grossWeight = it.grossWeight,
-                        entryDate = dateFormatter.parse(it.entryDate)
+                        entryDate = dateFormatter.parse(it.entryDate)!!
                     )
                 }
             }
@@ -52,10 +53,10 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
         isAscending: Boolean
     ): Flow<List<WeighbridgeRecord>> {
         val fieldNames = when (sortingOption) {
-            SortingOption.DATE -> "entryDate"
-            SortingOption.NET_WEIGHT -> "grossWeight"
-            SortingOption.DRIVER_NAME -> "driverName"
-            SortingOption.LICENSE_NUMBER -> "licenseNumber"
+            SortingOption.DATE -> WeighbridgeRecordDbModel.COLUMN_ENTRY_DATE
+            SortingOption.NET_WEIGHT -> WeighbridgeRecordDbModel.COLUMN_NET_WEIGHT
+            SortingOption.DRIVER_NAME -> WeighbridgeRecordDbModel.COLUMN_DRIVER_NAME
+            SortingOption.LICENSE_NUMBER -> WeighbridgeRecordDbModel.COLUMN_LICENSE_NUMBER
         }
         return weighbridgeRecordDao.getAllWeighbridgeRecordsSortedBy(fieldNames, isAscending)
             .map {
@@ -67,7 +68,7 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
                         driverName = it.driverName,
                         tareWeight = it.tareWeight,
                         grossWeight = it.grossWeight,
-                        entryDate = dateFormatter.parse(it.entryDate)
+                        entryDate = dateFormatter.parse(it.entryDate)!!
                     )
                 }
             }
@@ -83,7 +84,7 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
                     driverName = it.driverName,
                     tareWeight = it.tareWeight,
                     grossWeight = it.grossWeight,
-                    entryDate = dateFormatter.parse(it.entryDate)
+                    entryDate = dateFormatter.parse(it.entryDate)!!
                 )
             }
     }
