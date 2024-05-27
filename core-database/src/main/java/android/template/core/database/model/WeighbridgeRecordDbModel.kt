@@ -36,7 +36,7 @@ data class WeighbridgeRecordDbModel(
         const val TABLE_NAME = "weighbridge_record"
 
         const val COLUMN_ENTRY_DATE = "entryDate"
-        const val COLUMN_GROSS_WEIGHT = "grossWeight"
+        const val COLUMN_NET_WEIGHT = "netWeight"
         const val COLUMN_LICENSE_NUMBER = "licenseNumber"
         const val COLUMN_DRIVER_NAME = "driverName"
     }

@@ -24,7 +24,7 @@ interface WeighbridgeRecordDao {
         isAscending: Boolean
     ): Flow<List<WeighbridgeRecordDbModel>> {
         val query =
-            "SELECT * FROM ${WeighbridgeRecordDbModel.TABLE_NAME} " +
+            "SELECT *, (grossWeight - tareWeight) netWeight FROM ${WeighbridgeRecordDbModel.TABLE_NAME} " +
                     "ORDER BY $baseField ${if (isAscending) "ASC" else "DESC"}"
         return getAllWeighbridgeRecordsViaQuery(SimpleSQLiteQuery(query))
     }

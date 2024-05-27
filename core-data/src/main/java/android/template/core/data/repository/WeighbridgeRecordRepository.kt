@@ -54,7 +54,7 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
     ): Flow<List<WeighbridgeRecord>> {
         val fieldNames = when (sortingOption) {
             SortingOption.DATE -> WeighbridgeRecordDbModel.COLUMN_ENTRY_DATE
-            SortingOption.NET_WEIGHT -> WeighbridgeRecordDbModel.COLUMN_GROSS_WEIGHT
+            SortingOption.NET_WEIGHT -> WeighbridgeRecordDbModel.COLUMN_NET_WEIGHT
             SortingOption.DRIVER_NAME -> WeighbridgeRecordDbModel.COLUMN_DRIVER_NAME
             SortingOption.LICENSE_NUMBER -> WeighbridgeRecordDbModel.COLUMN_LICENSE_NUMBER
         }
