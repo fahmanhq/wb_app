@@ -1,6 +1,7 @@
 package android.template.core.data.repository
 
 import android.template.core.data.model.FleetType
+import android.template.core.data.model.SortingOption
 import android.template.core.data.model.WeighbridgeRecord
 import android.template.core.database.dao.WeighbridgeRecordDao
 import android.template.core.database.model.WeighbridgeRecordDbModel
@@ -46,6 +47,32 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
             }
     }
 
+    override fun getAllWeighbridgeRecordsSortedBy(
+        sortingOption: SortingOption,
+        isAscending: Boolean
+    ): Flow<List<WeighbridgeRecord>> {
+        val fieldNames = when (sortingOption) {
+            SortingOption.DATE -> "entryDate"
+            SortingOption.NET_WEIGHT -> "grossWeight"
+            SortingOption.DRIVER_NAME -> "driverName"
+            SortingOption.LICENSE_NUMBER -> "licenseNumber"
+        }
+        return weighbridgeRecordDao.getAllWeighbridgeRecordsSortedBy(fieldNames, isAscending)
+            .map {
+                it.map {
+                    WeighbridgeRecord(
+                        recordId = it.recordId,
+                        fleetType = FleetType.valueOf(it.type),
+                        licenseNumber = it.licenseNumber,
+                        driverName = it.driverName,
+                        tareWeight = it.tareWeight,
+                        grossWeight = it.grossWeight,
+                        entryDate = dateFormatter.parse(it.entryDate)
+                    )
+                }
+            }
+    }
+
     override suspend fun getWeighbridgeRecordById(recordId: String): WeighbridgeRecord? {
         return weighbridgeRecordDao.getWeighbridgeRecordById(recordId)
             ?.let {
@@ -73,6 +100,11 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
 interface WeighbridgeRecordRepository {
     suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord)
     fun getAllWeighbridgeRecords(): Flow<List<WeighbridgeRecord>>
+    fun getAllWeighbridgeRecordsSortedBy(
+        sortingOption: SortingOption,
+        isAscending: Boolean
+    ): Flow<List<WeighbridgeRecord>>
+
     suspend fun getWeighbridgeRecordById(recordId: String): WeighbridgeRecord?
     suspend fun deleteWeighbridgeRecordById(recordId: String)
     suspend fun deleteAllWeighbridgeRecords()
