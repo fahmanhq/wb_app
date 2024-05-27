@@ -34,6 +34,11 @@ data class WeighbridgeRecordDbModel(
 
     companion object {
         const val TABLE_NAME = "weighbridge_record"
+
+        const val COLUMN_ENTRY_DATE = "entryDate"
+        const val COLUMN_GROSS_WEIGHT = "grossWeight"
+        const val COLUMN_LICENSE_NUMBER = "licenseNumber"
+        const val COLUMN_DRIVER_NAME = "driverName"
     }
 }
 
