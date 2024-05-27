@@ -10,4 +10,7 @@ data class WeighbridgeRecord(
     val tareWeight: Double,
     val grossWeight: Double,
     val entryDate: Date,
-)
+) {
+    val netWeight: Double
+        get() = grossWeight - tareWeight
+}

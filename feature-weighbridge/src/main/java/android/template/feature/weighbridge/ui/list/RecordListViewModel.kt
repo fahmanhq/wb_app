@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package android.template.feature.weighbridge.ui
+package android.template.feature.weighbridge.ui.list
 
 import android.template.core.data.model.SortingOption
 import android.template.core.data.model.WeighbridgeRecord
 import android.template.core.data.repository.WeighbridgeRecordRepository
-import android.template.feature.weighbridge.ui.RecordListUiState.Loading
-import android.template.feature.weighbridge.ui.RecordListUiState.Success
+import android.template.feature.weighbridge.ui.list.RecordListUiState.Loading
+import android.template.feature.weighbridge.ui.list.RecordListUiState.Success
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,8 +38,8 @@ class RecordListViewModel @Inject constructor(
     private val recordRepository: WeighbridgeRecordRepository
 ) : ViewModel() {
 
-    private val _filterParam = MutableStateFlow(FilterParam())
-    val filterParam: StateFlow<FilterParam> = _filterParam
+    private val _filterParam = MutableStateFlow(TicketListSortingParam())
+    val filterParam: StateFlow<TicketListSortingParam> = _filterParam
 
     val uiState: StateFlow<RecordListUiState> =
         filterParam
@@ -54,14 +54,9 @@ class RecordListViewModel @Inject constructor(
 
     fun onSortOptionSelected(sortingOption: SortingOption, isAscending: Boolean) {
         viewModelScope.launch {
-            _filterParam.value = FilterParam(sortingOption, isAscending)
+            _filterParam.value = TicketListSortingParam(sortingOption, isAscending)
         }
     }
-
-    data class FilterParam(
-        val sortingOption: SortingOption = SortingOption.DATE,
-        val isAscending: Boolean = false
-    )
 }
 
 sealed interface RecordListUiState {

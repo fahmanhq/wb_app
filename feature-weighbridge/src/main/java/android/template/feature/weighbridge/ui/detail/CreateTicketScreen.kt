@@ -1,8 +1,12 @@
-package android.template.feature.weighbridge.ui
+package android.template.feature.weighbridge.ui.detail
 
 import android.template.core.data.model.FleetType
+import android.template.core.data.model.Resource
 import android.template.core.ui.MyApplicationTheme
+import android.template.core.ui.component.ConfirmationDialog
 import android.template.core.ui.utils.RecordIdFormatter
+import android.template.core.ui.utils.WeightFormatter
+import android.template.feature.weighbridge.R
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -31,15 +35,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -48,9 +52,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.NavHostController
 import java.text.DateFormat
 import java.util.UUID
 
@@ -62,7 +63,6 @@ enum class FormMode {
 
 @Composable
 fun TicketFormScreen(
-    navController: NavHostController,
     viewModel: CreateTicketFormViewModel = hiltViewModel(),
     recordId: String?,
     mode: FormMode,
@@ -73,16 +73,8 @@ fun TicketFormScreen(
     LaunchedEffect(recordId) {
         viewModel.init(recordId, mode)
     }
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val uiState by produceState(
-        initialValue = CreateTicketFormUiState(),
-        key1 = lifecycle,
-        key2 = viewModel
-    ) {
-        lifecycle.repeatOnLifecycle(state = Lifecycle.State.STARTED) {
-            viewModel.uiState.collect { value = it }
-        }
-    }
+
+    val uiState by viewModel.uiState.collectAsState()
 
     val context = LocalContext.current
     val saveProgressState = uiState.saveProgressState
@@ -90,14 +82,15 @@ fun TicketFormScreen(
         when (saveProgressState) {
             is Resource.Error -> {
                 saveProgressState.error.consumeOnce {
-                    Toast.makeText(context, "Save Failed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context,
+                        context.getString(R.string.save_failed), Toast.LENGTH_SHORT).show()
                 }
             }
 
             is Resource.Success -> {
-                val successMessage = when (mode) {
-                    FormMode.EDIT -> "Ticket Updated"
-                    else -> "Ticket Created"
+                val successMessage = when (uiState.mode) {
+                    FormMode.EDIT -> context.getString(R.string.ticket_updated)
+                    else -> context.getString(R.string.ticket_created)
                 }
                 Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
                 onRecordSaved()
@@ -112,12 +105,14 @@ fun TicketFormScreen(
         when (deleteProgressState) {
             is Resource.Error -> {
                 deleteProgressState.error.consumeOnce {
-                    Toast.makeText(context, "Delete Failed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context,
+                        context.getString(R.string.ticket_delete_failed), Toast.LENGTH_SHORT).show()
                 }
             }
 
             is Resource.Success -> {
-                Toast.makeText(context, "Ticket Deleted", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context,
+                    context.getString(R.string.ticket_deleted), Toast.LENGTH_SHORT).show()
                 onRecordDeleted()
             }
 
@@ -195,9 +190,9 @@ private fun TicketFormScreen(
         topBar = {
             AppBarWithBackButtonAndTitle(
                 title = when (formMode) {
-                    FormMode.CREATE -> "Create Ticket"
-                    FormMode.EDIT -> "Edit Ticket $readableId"
-                    FormMode.VIEW -> "Ticket $readableId"
+                    FormMode.CREATE -> stringResource(R.string.create_ticket_title)
+                    FormMode.EDIT -> stringResource(R.string.edit_ticket_title, readableId)
+                    FormMode.VIEW -> stringResource(R.string.ticket_detail_title, readableId)
                 },
                 formMode = formMode,
                 onBackButtonClick = onBackButtonClicked,
@@ -216,9 +211,10 @@ private fun TicketFormScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "Entry Time : ${
+                text = stringResource(
+                    R.string.entry_time_template,
                     DateFormat.getDateTimeInstance().format(entryDate)
-                }",
+                ),
                 style = MaterialTheme.typography.bodySmall
             )
 
@@ -226,7 +222,7 @@ private fun TicketFormScreen(
                 modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
             )
 
-            Text("Fleet Type")
+            Text(stringResource(R.string.ticket_form_fleet_type))
             Row {
                 FleetType.values().forEach { type ->
                     Row(
@@ -261,7 +257,7 @@ private fun TicketFormScreen(
             OutlinedTextField(
                 value = licenseNumber,
                 onValueChange = onLicenseNumberChanged,
-                label = { Text("License Number") },
+                label = { Text(stringResource(R.string.ticket_form_license_number)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Characters,
@@ -274,7 +270,7 @@ private fun TicketFormScreen(
             OutlinedTextField(
                 value = driverName,
                 onValueChange = onDriverNameChanged,
-                label = { Text("Driver Name") },
+                label = { Text(stringResource(R.string.ticket_form_driver_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Words,
@@ -287,13 +283,13 @@ private fun TicketFormScreen(
             OutlinedTextField(
                 value = tareWeight,
                 onValueChange = onTareWeightChanged,
-                label = { Text("Tare Weight") },
+                label = { Text(stringResource(R.string.ticket_form_tare_weight)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
                 ),
-                suffix = { Text("kg") },
+                suffix = { Text(stringResource(R.string.kilograms_unit)) },
                 singleLine = true,
                 readOnly = !isEditableMode
             )
@@ -301,20 +297,20 @@ private fun TicketFormScreen(
             OutlinedTextField(
                 value = grossWeight,
                 onValueChange = onGrossWeightChanged,
-                label = { Text("Gross Weight") },
+                label = { Text(stringResource(R.string.ticket_form_gross_weight)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number
                 ),
-                suffix = { Text("kg") },
+                suffix = { Text(stringResource(R.string.kilograms_unit)) },
                 singleLine = true,
                 readOnly = !isEditableMode
             )
 
             OutlinedTextField(
-                value = WeightFormatter().format(netWeight),
+                value = WeightFormatter.format(netWeight),
                 onValueChange = {},
-                label = { Text("Net Weight") },
+                label = { Text(stringResource(R.string.ticket_form_net_weight)) },
                 modifier = Modifier.fillMaxWidth(),
                 readOnly = true
             )
@@ -327,7 +323,7 @@ private fun TicketFormScreen(
                     enabled = saveBtnEnabled,
                     onClick = onSaveBtnClicked
                 ) {
-                    Text("Save")
+                    Text(stringResource(R.string.ticket_form_save_btn_label))
                 }
             }
         }
@@ -335,8 +331,8 @@ private fun TicketFormScreen(
 
     if (isDeletePopUpShown) {
         ConfirmationDialog(
-            title = "Confirm Delete",
-            message = "Are you sure you want to delete this ticket?",
+            title = stringResource(R.string.ticket_form_confirm_delete_dialog_title),
+            message = stringResource(R.string.ticket_form_confirm_delete_dialog_message),
             onDismiss = { isDeletePopUpShown = false },
             onConfirm = {
                 onDeleteActionConfirmed()

@@ -18,8 +18,8 @@ package android.template.feature.weighbridge.ui.mymodel
 
 
 import android.template.core.data.MyModelRepository
-import android.template.feature.weighbridge.ui.RecordListUiState
-import android.template.feature.weighbridge.ui.RecordListViewModel
+import android.template.feature.weighbridge.ui.list.RecordListUiState
+import android.template.feature.weighbridge.ui.list.RecordListViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first

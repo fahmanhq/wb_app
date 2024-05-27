@@ -34,12 +34,4 @@ interface DataModule {
 
 }
 
-//class FakeMyModelRepository @Inject constructor() : MyModelRepository {
-//    override val myModels: Flow<List<String>> = flowOf(fakeMyModels)
-//
-//    override suspend fun add(name: String) {
-//        throw NotImplementedError()
-//    }
-//}
-
 val fakeMyModels = listOf("One", "Two", "Three")

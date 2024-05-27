@@ -1,4 +1,4 @@
-package android.template.feature.weighbridge.ui
+package android.template.core.ui.component
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
