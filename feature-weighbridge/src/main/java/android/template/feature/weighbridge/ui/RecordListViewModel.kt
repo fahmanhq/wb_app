@@ -16,19 +16,21 @@
 
 package android.template.feature.weighbridge.ui
 
+import android.template.core.data.model.SortingOption
 import android.template.core.data.model.WeighbridgeRecord
 import android.template.core.data.repository.WeighbridgeRecordRepository
-import android.template.feature.weighbridge.ui.RecordListUiState.Error
 import android.template.feature.weighbridge.ui.RecordListUiState.Loading
 import android.template.feature.weighbridge.ui.RecordListUiState.Success
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,11 +38,30 @@ class RecordListViewModel @Inject constructor(
     private val recordRepository: WeighbridgeRecordRepository
 ) : ViewModel() {
 
+    private val _filterParam = MutableStateFlow(FilterParam())
+    val filterParam: StateFlow<FilterParam> = _filterParam
+
     val uiState: StateFlow<RecordListUiState> =
-        recordRepository.getAllWeighbridgeRecords()
+        filterParam
+            .flatMapLatest {
+                recordRepository.getAllWeighbridgeRecordsSortedBy(
+                    it.sortingOption,
+                    it.isAscending
+                )
+            }
             .map<List<WeighbridgeRecord>, RecordListUiState> { Success(data = it) }
-            .catch { emit(Error(it)) }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Loading)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), Loading)
+
+    fun onSortOptionSelected(sortingOption: SortingOption, isAscending: Boolean) {
+        viewModelScope.launch {
+            _filterParam.value = FilterParam(sortingOption, isAscending)
+        }
+    }
+
+    data class FilterParam(
+        val sortingOption: SortingOption = SortingOption.DATE,
+        val isAscending: Boolean = false
+    )
 }
 
 sealed interface RecordListUiState {

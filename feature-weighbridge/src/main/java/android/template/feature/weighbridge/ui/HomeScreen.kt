@@ -17,11 +17,13 @@
 package android.template.feature.weighbridge.ui
 
 import android.template.core.data.model.FleetType
+import android.template.core.data.model.SortingOption
 import android.template.core.data.model.WeighbridgeRecord
 import android.template.core.ui.MyApplicationTheme
 import android.template.core.ui.Typography
 import android.template.core.ui.utils.RecordIdFormatter
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,33 +42,39 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle.State.STARTED
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -81,32 +89,30 @@ fun HomeScreen(
     onViewDetailsBtnClicked: (String) -> Unit,
     onEditBtnClicked: (String) -> Unit
 ) {
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val items by produceState<RecordListUiState>(
-        initialValue = RecordListUiState.Loading,
-        key1 = lifecycle,
-        key2 = viewModel
-    ) {
-        lifecycle.repeatOnLifecycle(state = STARTED) {
-            viewModel.uiState.collect { value = it }
-        }
-    }
+    val items by viewModel.uiState.collectAsState()
+    val appliedFilter by viewModel.filterParam.collectAsState()
+
     if (items is RecordListUiState.Success) {
         HomeScreen(
             recordList = (items as RecordListUiState.Success).data,
+            appliedFilter = appliedFilter,
             onCreateTicketBtnClicked = onCreateTicketBtnClicked,
             onViemDetailsBtnClicked = onViewDetailsBtnClicked,
-            onEditBtnClicked = onEditBtnClicked
+            onEditBtnClicked = onEditBtnClicked,
+            onSortOptionSelected = viewModel::onSortOptionSelected
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 internal fun HomeScreen(
     recordList: List<WeighbridgeRecord>,
+    appliedFilter: RecordListViewModel.FilterParam,
     onCreateTicketBtnClicked: () -> Unit,
     onViemDetailsBtnClicked: (String) -> Unit,
-    onEditBtnClicked: (String) -> Unit
+    onEditBtnClicked: (String) -> Unit,
+    onSortOptionSelected: (SortingOption, Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
     val expandedFab by remember {
@@ -114,8 +120,35 @@ internal fun HomeScreen(
             listState.firstVisibleItemIndex == 0
         }
     }
+    var isSortDialogVisible by remember {
+        mutableStateOf(false)
+    }
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Weighbridge Ticketing",
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                ),
+                actions = {
+                    IconButton(onClick = { isSortDialogVisible = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.List,
+                            contentDescription = "Filter Records"
+                        )
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onCreateTicketBtnClicked,
@@ -132,13 +165,25 @@ internal fun HomeScreen(
             contentPadding = PaddingValues(top = 16.dp, bottom = 88.dp, start = 16.dp, end = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(recordList) {
+            items(recordList, key = { it.recordId }) {
                 RecordCard(
+                    modifier = Modifier.animateItemPlacement(),
                     spec = it,
                     onViewDetailsBtnClicked = onViemDetailsBtnClicked,
                     onEditBtnClicked = onEditBtnClicked
                 )
             }
+        }
+
+        if (isSortDialogVisible) {
+            SortingDialog(
+                onDismissRequest = { isSortDialogVisible = false },
+                appliedFilter = appliedFilter,
+                onSortOptionSelected = { sortingOption, isAscending ->
+                    onSortOptionSelected(sortingOption, isAscending)
+                    isSortDialogVisible = false
+                }
+            )
         }
     }
 }
@@ -154,7 +199,7 @@ private fun RecordCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable {
-               onViewDetailsBtnClicked.invoke(spec.recordId)
+                onViewDetailsBtnClicked.invoke(spec.recordId)
             },
         colors = CardDefaults.elevatedCardColors(
             containerColor = Color.White,
@@ -306,41 +351,11 @@ private fun DefaultPreview() {
                     tareWeight = 1200.0,
                 )
             ),
+            appliedFilter = RecordListViewModel.FilterParam(),
             onCreateTicketBtnClicked = {},
             onViemDetailsBtnClicked = {},
-            onEditBtnClicked = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, widthDp = 480, group = "screen")
-@Composable
-private fun PortraitPreview() {
-    MyApplicationTheme {
-        HomeScreen(
-            recordList = listOf(
-                WeighbridgeRecord(
-                    recordId = "SOME_ID_1",
-                    entryDate = Date(),
-                    fleetType = FleetType.INBOUND,
-                    licenseNumber = "F 1231 ABC",
-                    driverName = "William Doe",
-                    grossWeight = 100.0,
-                    tareWeight = 90.0,
-                ),
-                WeighbridgeRecord(
-                    recordId = "SOME_ID_2",
-                    entryDate = Date(),
-                    fleetType = FleetType.OUTBOUND,
-                    licenseNumber = "F 1231 ABC",
-                    driverName = "William Doe",
-                    grossWeight = 1525.0,
-                    tareWeight = 1200.0,
-                )
-            ),
-            onCreateTicketBtnClicked = {},
-            onViemDetailsBtnClicked = {},
-            onEditBtnClicked = {}
+            onEditBtnClicked = {},
+            onSortOptionSelected = { _, _ -> }
         )
     }
 }
