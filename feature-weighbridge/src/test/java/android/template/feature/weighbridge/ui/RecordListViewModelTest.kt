@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package android.template.feature.weighbridge.ui.mymodel
+package android.template.feature.weighbridge.ui
 
 
 import android.template.core.data.model.FleetType
@@ -22,7 +22,6 @@ import android.template.core.data.model.SortingOption
 import android.template.core.data.model.WeighbridgeRecord
 import android.template.core.data.repository.FakeWeighbridgeRecordRepository
 import android.template.core.data.repository.WeighbridgeRecordRepository
-import android.template.feature.weighbridge.ui.MainDispatcherRule
 import android.template.feature.weighbridge.ui.list.RecordListUiState
 import android.template.feature.weighbridge.ui.list.RecordListViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi

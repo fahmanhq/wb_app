@@ -18,7 +18,7 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US)
 
-    override suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord) {
+    override suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord): WeighbridgeRecord {
         weighbridgeRecordDao.insertWeighbridgeRecord(
             WeighbridgeRecordDbModel(
                 recordId = record.recordId,
@@ -30,6 +30,7 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
                 entryDate = dateFormatter.format(record.entryDate)
             )
         )
+        return record
     }
 
     override fun getAllWeighbridgeRecords(): Flow<List<WeighbridgeRecord>> {
@@ -100,7 +101,7 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
 }
 
 interface WeighbridgeRecordRepository {
-    suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord)
+    suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord): WeighbridgeRecord
     fun getAllWeighbridgeRecords(): Flow<List<WeighbridgeRecord>>
     fun getAllWeighbridgeRecordsSortedBy(
         sortingOption: SortingOption,
@@ -116,8 +117,9 @@ class FakeWeighbridgeRecordRepository @Inject constructor() : WeighbridgeRecordR
 
     private val records = mutableListOf<WeighbridgeRecord>()
 
-    override suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord) {
+    override suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord): WeighbridgeRecord {
         records.add(record)
+        return record
     }
 
     override fun getAllWeighbridgeRecords(): Flow<List<WeighbridgeRecord>> {
