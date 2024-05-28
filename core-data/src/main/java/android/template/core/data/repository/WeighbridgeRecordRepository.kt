@@ -6,6 +6,7 @@ import android.template.core.data.model.WeighbridgeRecord
 import android.template.core.database.dao.WeighbridgeRecordDao
 import android.template.core.database.model.WeighbridgeRecordDbModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -17,7 +18,7 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US)
 
-    override suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord) {
+    override suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord): WeighbridgeRecord {
         weighbridgeRecordDao.insertWeighbridgeRecord(
             WeighbridgeRecordDbModel(
                 recordId = record.recordId,
@@ -29,6 +30,7 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
                 entryDate = dateFormatter.format(record.entryDate)
             )
         )
+        return record
     }
 
     override fun getAllWeighbridgeRecords(): Flow<List<WeighbridgeRecord>> {
@@ -99,7 +101,7 @@ class DefaultWeighbridgeRecordRepository @Inject constructor(
 }
 
 interface WeighbridgeRecordRepository {
-    suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord)
+    suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord): WeighbridgeRecord
     fun getAllWeighbridgeRecords(): Flow<List<WeighbridgeRecord>>
     fun getAllWeighbridgeRecordsSortedBy(
         sortingOption: SortingOption,
@@ -109,4 +111,57 @@ interface WeighbridgeRecordRepository {
     suspend fun getWeighbridgeRecordById(recordId: String): WeighbridgeRecord?
     suspend fun deleteWeighbridgeRecordById(recordId: String)
     suspend fun deleteAllWeighbridgeRecords()
+}
+
+class FakeWeighbridgeRecordRepository @Inject constructor() : WeighbridgeRecordRepository {
+
+    private val records = mutableListOf<WeighbridgeRecord>()
+
+    override suspend fun insertWeighbridgeRecord(record: WeighbridgeRecord): WeighbridgeRecord {
+        records.add(record)
+        return record
+    }
+
+    override fun getAllWeighbridgeRecords(): Flow<List<WeighbridgeRecord>> {
+        return flowOf(records)
+    }
+
+    override fun getAllWeighbridgeRecordsSortedBy(
+        sortingOption: SortingOption,
+        isAscending: Boolean
+    ): Flow<List<WeighbridgeRecord>> {
+        return flowOf(
+            records.sortedWith(
+                if (isAscending) {
+                    when (sortingOption) {
+                        SortingOption.DATE -> compareBy { it.entryDate }
+                        SortingOption.NET_WEIGHT -> compareBy { it.netWeight }
+                        SortingOption.DRIVER_NAME -> compareBy { it.driverName }
+                        SortingOption.LICENSE_NUMBER -> compareBy { it.licenseNumber }
+                    }
+                } else {
+                    when (sortingOption) {
+                        SortingOption.DATE -> compareByDescending { it.entryDate }
+                        SortingOption.NET_WEIGHT -> compareByDescending { it.netWeight }
+                        SortingOption.DRIVER_NAME -> compareByDescending { it.driverName }
+                        SortingOption.LICENSE_NUMBER -> compareByDescending { it.licenseNumber }
+                    }
+                }
+            )
+        )
+    }
+
+    override suspend fun getWeighbridgeRecordById(recordId: String): WeighbridgeRecord? {
+        return records.find { it.recordId == recordId }
+    }
+
+    override suspend fun deleteWeighbridgeRecordById(recordId: String) {
+        records.remove(
+            records.find { it.recordId == recordId }
+        )
+    }
+
+    override suspend fun deleteAllWeighbridgeRecords() {
+        records.clear()
+    }
 }
